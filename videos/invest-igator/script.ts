@@ -11,8 +11,8 @@ export const spec: VideoSpec = {
   fps: 30,
   width: 1920,
   height: 1080,
-  repoUrl: 'Private app · runs on your own machine · no public demo',
-  demoUrl: '127.0.0.1:5191 · local',
+  repoUrl: 'github.com/ericediger/INVEST-IGATOR',
+  demoUrl: 'ericediger.github.io/INVEST-IGATOR/demo',
   record: {
     url: 'http://127.0.0.1:5198/',
     viewport: { width: 1600, height: 900 },
@@ -137,9 +137,9 @@ export const spec: VideoSpec = {
       component: 'Outro',
       title: '',
       narration:
-        'Runs on your own machine; your data stays in one file. Every figure is dated and sourced, nothing is invented. It never trades, and only you mark a company Invested. INVEST-IGATOR. The research before the decision.',
+        'Runs on your own machine; your data stays in one file. Every figure is dated and sourced, nothing is invented. It never trades, and only you mark a company Invested. INVEST-IGATOR. Open source on GitHub, with a live demo you can click through right now.',
       spoken:
-        'Runs on your own machine; your data stays in one file. Every figure is dated and sourced, nothing is invented. It never trades, and only you mark a company Invested. Invest-igator. The research before the decision.',
+        'Runs on your own machine; your data stays in one file. Every figure is dated and sourced, nothing is invented. It never trades, and only you mark a company Invested. Invest-igator. Open source on GitHub, with a live demo you can click through right now.',
       leadInSec: 0.8,
       tailSec: 2.5,
     },

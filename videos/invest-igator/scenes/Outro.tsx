@@ -45,8 +45,19 @@ export const Outro: React.FC<AnimatedSceneProps> = ({ scene, spec }) => {
           </div>
         </div>
         <div style={{ margin: '16px auto 0', height: 4, width: lerp(0, 160, easeOut((frame - tMark - 8) / 20)), borderRadius: 2, background: theme.accent }} />
-        <div style={{ marginTop: 24, fontFamily: theme.display, fontSize: 34, color: theme.ink, fontStyle: 'italic', opacity: fadeIn(frame, tTag, 12) }}>The research before the decision.</div>
-        <div style={{ marginTop: 16, fontFamily: theme.mono, fontSize: 19, color: theme.muted, opacity: fadeIn(frame, tTag + 12, 12) }}>{spec.repoUrl} · Node · Express · SQLite · OpenAI research with citations · Tiingo and SEC EDGAR feeds</div>
+        <div style={{ marginTop: 22, fontFamily: theme.display, fontSize: 30, color: theme.ink, fontStyle: 'italic', opacity: fadeIn(frame, tMark + 14, 12) }}>The research before the decision.</div>
+        <div style={{ marginTop: 22, display: 'flex', justifyContent: 'center', gap: 22, opacity: fadeIn(frame, tTag, 12) }}>
+          {[
+            { label: 'Open source', value: spec.repoUrl },
+            { label: 'Live demo · sample data', value: spec.demoUrl },
+          ].map((l) => (
+            <div key={l.label} style={{ padding: '14px 24px', borderRadius: 14, background: theme.panel, border: `1px solid ${theme.line}`, boxShadow: '0 16px 40px rgba(0,0,0,.12)', textAlign: 'left' }}>
+              <div style={{ fontSize: 14, letterSpacing: 2, color: theme.accent, fontWeight: 700, textTransform: 'uppercase' }}>{l.label}</div>
+              <div style={{ fontFamily: theme.mono, fontSize: 24, color: theme.ink, marginTop: 4 }}>{l.value}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop: 16, fontSize: 17, color: theme.muted, opacity: fadeIn(frame, tTag + 14, 12) }}>Node · Express · SQLite · OpenAI research with citations · Tiingo and SEC EDGAR feeds</div>
       </div>
     </AbsoluteFill>
   );
