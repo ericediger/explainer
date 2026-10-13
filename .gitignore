@@ -12,3 +12,6 @@ public/*/narration/*
 public/*/footage/*
 !public/*/narration/.gitkeep
 !public/*/footage/.gitkeep
+
+# INVEST-IGATOR demo: an installed copy of the app for the recorder
+videos/invest-igator/demo/.app/

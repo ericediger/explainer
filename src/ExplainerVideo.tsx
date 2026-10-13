@@ -10,7 +10,7 @@ import { LowerThird } from './kit/LowerThird';
 import { NoteChip } from './kit/NoteChip';
 import { ProgressBar } from './kit/ProgressBar';
 import { CLAMP, fadeIn, fadeOut, lerp } from './kit/anim';
-import { ThemeContext, resolveTheme, useTheme } from './kit/theme';
+import { StyleContext, ThemeContext, resolveStyle, resolveTheme, useStyle, useTheme } from './kit/theme';
 import type { AnimatedScene } from './kit/types';
 
 export type ExplainerProps = { spec: VideoSpec; timeline: Timeline };
@@ -20,12 +20,30 @@ const MissingScene: React.FC<{ id?: string }> = ({ id }) => {
   return <AbsoluteFill style={{ display: 'grid', placeItems: 'center', color: theme.red, fontSize: 32 }}>No animated component registered as “{id}”</AbsoluteFill>;
 };
 
-const SceneView: React.FC<{ scene: TimelineScene; spec: VideoSpec; components: Record<string, AnimatedScene> }> = ({ scene, spec, components }) => {
+/** Enter/exit treatment of a scene's visuals for `spec.style.transition`. */
+function transitionStyle(kind: 'fade' | 'slide' | 'zoom-through', frame: number, total: number, last: boolean): React.CSSProperties {
+  if (kind === 'slide') {
+    const pin = easeOutCubic(Math.min(1, frame / 14));
+    const pout = last ? 0 : easeInCubic(Math.max(0, (frame - (total - 12)) / 12));
+    return { opacity: Math.min(1, frame / 8) * (1 - pout), transform: `translateX(${lerp(90, 0, pin) - 90 * pout}px)` };
+  }
+  if (kind === 'zoom-through') {
+    const pin = easeOutCubic(Math.min(1, frame / 16));
+    const pout = last ? 0 : easeInCubic(Math.max(0, (frame - (total - 12)) / 12));
+    return { opacity: Math.min(1, frame / 8) * (1 - pout), transform: `scale(${lerp(1.06, 1, pin) + 0.04 * pout})`, transformOrigin: '50% 50%' };
+  }
+  return { opacity: fadeIn(frame, 0, 8) };
+}
+const easeOutCubic = (t: number): number => 1 - Math.pow(1 - Math.min(1, Math.max(0, t)), 3);
+const easeInCubic = (t: number): number => Math.pow(Math.min(1, Math.max(0, t)), 3);
+
+const SceneView: React.FC<{ scene: TimelineScene; spec: VideoSpec; components: Record<string, AnimatedScene>; last: boolean }> = ({ scene, spec, components, last }) => {
   const frame = useCurrentFrame();
+  const style = useStyle();
   const Anim = scene.spec.component ? components[scene.spec.component] : undefined;
   return (
     <>
-      <AbsoluteFill style={{ opacity: fadeIn(frame, 0, 8) }}>
+      <AbsoluteFill style={transitionStyle(style.transition, frame, scene.durationInFrames, last)}>
         {scene.spec.kind === 'footage' ? (
           <FootageScene footage={scene.footage} videoId={spec.id} demoUrl={spec.demoUrl} />
         ) : Anim ? (
@@ -77,18 +95,21 @@ const Music: React.FC<{ spec: VideoSpec; timeline: Timeline }> = ({ spec, timeli
 export const ExplainerVideo: React.FC<ExplainerProps> = ({ spec, timeline }) => {
   const components = videos.find((v) => v.spec.id === spec.id)?.components ?? {};
   const theme = resolveTheme(spec.theme);
+  const style = resolveStyle(spec.style);
   return (
     <ThemeContext.Provider value={theme}>
-      <AbsoluteFill style={{ background: theme.bg0, fontFamily: theme.font, color: theme.ink }}>
-        <Background />
-        {timeline.scenes.map((s) => (
-          <Sequence key={s.spec.id} from={s.from} durationInFrames={s.durationInFrames} name={`${String(s.index + 1).padStart(2, '0')} ${s.spec.id}`}>
-            <SceneView scene={s} spec={spec} components={components} />
-          </Sequence>
-        ))}
-        <Music spec={spec} timeline={timeline} />
-        <ProgressBar total={timeline.durationInFrames} />
-      </AbsoluteFill>
+      <StyleContext.Provider value={style}>
+        <AbsoluteFill style={{ background: theme.bg0, fontFamily: theme.font, color: theme.ink }}>
+          <Background />
+          {timeline.scenes.map((s, i) => (
+            <Sequence key={s.spec.id} from={s.from} durationInFrames={s.durationInFrames} name={`${String(s.index + 1).padStart(2, '0')} ${s.spec.id}`}>
+              <SceneView scene={s} spec={spec} components={components} last={i === timeline.scenes.length - 1} />
+            </Sequence>
+          ))}
+          <Music spec={spec} timeline={timeline} />
+          <ProgressBar total={timeline.durationInFrames} />
+        </AbsoluteFill>
+      </StyleContext.Provider>
     </ThemeContext.Provider>
   );
 };

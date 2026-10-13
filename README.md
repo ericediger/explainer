@@ -93,11 +93,13 @@ videos/<id>/
 ```
 
 1. Copy `videos/week-prep/` to `videos/<id>/` and set `id`, `name`, `repoUrl`, `demoUrl`, and
-   `record` (a static folder + page to serve, or `url` of a dev server you already started, plus the viewport).
+   `record` (a static folder + page to serve, or `url` of a dev server you already started, plus the viewport,
+   and `readySelector` if the app's root element is not `#app`).
 2. Write the scenes in `script.ts`: `kind: 'animated'` scenes name a component; `kind: 'footage'`
    scenes name a hash route in the app. Narration is what the captions show; `spoken` fixes pronunciation.
 3. Restyle: `theme` overrides any palette key (see `src/kit/theme.ts`) so the motion graphics echo
-   the app; `voice.elevenlabs` picks the narrator; `music` adds a bed; `poster.atSec` picks the still.
+   the app; `style` picks a variant of each shared kit piece (see "Style presets" below);
+   `voice.elevenlabs` picks the narrator; `music` adds a bed; `poster.atSec` picks the still.
 4. Write `record.ts`: for each footage scene, drive the page with the `SceneRecorder` (`until`,
    `moveTo`, `click`, `type`, `spot`, `zoom`, `zoomUnion`, `eval`) paced to the narration length.
 5. Rewrite or replace the components in `scenes/` and register them in `index.ts`.
@@ -105,6 +107,26 @@ videos/<id>/
 
 Footage scenes are generic: anything the app can be driven to in a browser can be recorded.
 For a native app, swap the Playwright recorder for a screen capture and hand-write the cues.
+
+## Style presets
+
+Two videos on the same kit look like siblings unless the kit itself changes shape. `style` in the storyboard
+picks a variant of each shared piece; every key is optional and the defaults reproduce the original look:
+
+```ts
+style: { frame: 'bare', captions: 'bar', lowerThird: 'chapter-card', background: 'paper', transition: 'slide' },
+```
+
+| Key          | Variants                                   | What changes                                                        |
+|--------------|--------------------------------------------|---------------------------------------------------------------------|
+| `frame`      | `mac` · `bare` · `window`                  | browser window with traffic lights · full-bleed hairline frame · floating tilted window |
+| `captions`   | `pill` · `bar` · `none`                    | centred rounded box · full-width strip at the bottom · off          |
+| `lowerThird` | `bar` · `chapter-card` · `none`            | numbered bar top-left · centred title card that settles into a label · off |
+| `background` | `glow-grid` · `flat` · `mesh` · `paper`    | drifting grid with glows · plain gradient · slow gradient blobs · light sheet with grain |
+| `transition` | `fade` · `slide` · `zoom-through`          | how one scene hands over to the next                                |
+
+Pair `paper` with a light theme (`bg0`, `ink`, `muted`, `captionBg`, `captionInk` …) and `theme.display`
+for a headline face; the INVEST-IGATOR video is the worked example of the inverse of week-prep's dark stage.
 
 ## Honesty notes baked into the week-prep video
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { OffthreadVideo, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
 import type { Cue, Footage } from '../spec';
 import { easeInOut, lerp } from './anim';
-import { LAYOUT, useTheme } from './theme';
+import { frameGeom, useStyle, useTheme } from './theme';
 
 type Zoom = { scale: number; tx: number; ty: number };
 const IDENTITY: Zoom = { scale: 1, tx: 0, ty: 0 };
@@ -39,7 +39,7 @@ const Chrome: React.FC<{ url: string }> = ({ url }) => {
   return (
     <div
       style={{
-        height: LAYOUT.frame.chrome,
+        height: 40,
         display: 'flex',
         alignItems: 'center',
         gap: 8,
@@ -88,10 +88,18 @@ const Placeholder: React.FC = () => {
 
 export const FootageScene: React.FC<{ footage: Footage | null; videoId: string; demoUrl: string }> = ({ footage, videoId, demoUrl }) => {
   const theme = useTheme();
+  const style = useStyle();
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const F = LAYOUT.frame;
+  const F = frameGeom(style.frame);
   const cam = footage ? cameraAt(footage.cues, frame / fps, F.w / footage.cssWidth, F.w, F.h) : IDENTITY;
+  // Frame variants: 'mac' is the browser window, 'bare' a hairline full-bleed frame, 'window' a floating, slightly tilted window.
+  const shell: React.CSSProperties =
+    style.frame === 'bare'
+      ? { borderRadius: 10, boxShadow: `0 24px 70px rgba(0,0,0,.35), 0 0 0 1px ${theme.line}` }
+      : style.frame === 'window'
+        ? { borderRadius: 16, boxShadow: '0 50px 120px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.08)', transform: 'perspective(2600px) rotateY(-5deg) rotateX(2deg)', transformOrigin: '50% 50%' }
+        : { borderRadius: 14, boxShadow: '0 30px 80px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.07)' };
   return (
     <div
       style={{
@@ -100,14 +108,13 @@ export const FootageScene: React.FC<{ footage: Footage | null; videoId: string; 
         top: F.y,
         width: F.w,
         height: F.h + F.chrome,
-        borderRadius: 14,
         overflow: 'hidden',
         background: theme.panel,
-        boxShadow: '0 30px 80px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.07)',
+        ...shell,
       }}
     >
-      <Chrome url={demoUrl} />
-      <div style={{ position: 'absolute', top: F.chrome, left: 0, width: F.w, height: F.h, overflow: 'hidden', background: '#f6f7f9' }}>
+      {F.chrome ? <Chrome url={demoUrl} /> : null}
+      <div style={{ position: 'absolute', top: F.chrome, left: 0, width: F.w, height: F.h, overflow: 'hidden', background: theme.panel }}>
         {footage ? (
           <div style={{ position: 'absolute', inset: 0, transformOrigin: '0 0', transform: `translate(${cam.tx}px, ${cam.ty}px) scale(${cam.scale})` }}>
             <OffthreadVideo

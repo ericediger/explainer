@@ -45,6 +45,8 @@ export type VideoSpec = {
     /** Instead of appDir/page: a page that is already being served (a dev server you started), e.g. http://localhost:5173/demo. */
     url?: string;
     viewport: { width: number; height: number };
+    /** CSS selector of the element that must have rendered content before a scene starts (default `#app`). */
+    readySelector?: string;
   };
   voice: {
     /** macOS `say` voice and words-per-minute (the free, offline fallback). */
@@ -57,11 +59,27 @@ export type VideoSpec = {
   };
   /** Palette overrides for the motion graphics (see src/kit/theme.ts for the keys). */
   theme?: Partial<Theme>;
+  /** Look of the shared kit pieces (frame, captions, titles, background, transitions). Defaults reproduce the original look. */
+  style?: StyleSpec;
   /** Which moment `npm run poster` freezes for the README poster frame. */
   poster?: { atSec: number };
   /** Optional music bed under the whole video, ducked while narration plays. */
   music?: MusicSpec;
   scenes: SceneSpec[];
+};
+
+/** Each key picks a variant of one kit component; omit a key to keep the default. */
+export type StyleSpec = {
+  /** How footage is framed: a Mac-style browser window, full-bleed with a hairline, or a floating tilted window. */
+  frame?: 'mac' | 'bare' | 'window';
+  /** Caption treatment: a centred pill, a full-width strip, or none. */
+  captions?: 'pill' | 'bar' | 'none';
+  /** Scene titles: the numbered bar top-left, a centred chapter card that settles into a small label, or none. */
+  lowerThird?: 'bar' | 'chapter-card' | 'none';
+  /** Stage behind everything. */
+  background?: 'glow-grid' | 'flat' | 'mesh' | 'paper';
+  /** How scenes hand over. */
+  transition?: 'fade' | 'slide' | 'zoom-through';
 };
 
 export type MusicSpec = {

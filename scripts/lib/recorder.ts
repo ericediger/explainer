@@ -53,6 +53,8 @@ export type RecorderOptions = {
   viewport: { width: number; height: number };
   /** Device pixel ratio; 2 gives crisp text when Remotion zooms in. */
   dpr: number;
+  /** Element that must have rendered content before a scene starts (default `#app`). */
+  readySelector?: string;
 };
 
 export class SceneRecorder {
@@ -81,10 +83,10 @@ export class SceneRecorder {
     });
     this.page = await this.ctx.newPage();
     await this.page.goto(this.opts.baseUrl + hash, { waitUntil: 'load' });
-    await this.page.waitForFunction(() => {
-      const a = document.getElementById('app');
+    await this.page.waitForFunction((sel) => {
+      const a = document.querySelector(sel);
       return !!a && a.innerHTML.trim().length > 0;
-    });
+    }, this.opts.readySelector ?? '#app');
     await this.page.evaluate(() => (document as unknown as { fonts?: { ready: Promise<unknown> } }).fonts?.ready);
     await this.page.evaluate(HELPERS);
     this.mouse = { x: Math.round(viewport.width * 0.62), y: Math.round(viewport.height * 0.58) };

@@ -74,7 +74,7 @@ async function main(): Promise<void> {
   const only = process.argv.slice(2).filter((a) => !a.startsWith('-'));
   ensurePlaywrightFfmpeg();
   const browser = await launchBrowser();
-  const rec = new SceneRecorder(browser, { baseUrl, outDir, viewport: spec.record.viewport, dpr: 2 });
+  const rec = new SceneRecorder(browser, { baseUrl, outDir, viewport: spec.record.viewport, dpr: 2, readySelector: spec.record.readySelector });
 
   try {
     for (const sc of spec.scenes) {
