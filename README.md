@@ -94,7 +94,9 @@ videos/<id>/
 
 1. Copy `videos/week-prep/` to `videos/<id>/` and set `id`, `name`, `repoUrl`, `demoUrl`, and
    `record` (a static folder + page to serve, or `url` of a dev server you already started, plus the viewport,
-   and `readySelector` if the app's root element is not `#app`).
+   and `readySelector` if the app's root element is not `#app`). For a narrow UI such as a browser side panel,
+   lay the page out at 1600×900 and draw it with CSS `zoom` into a larger viewport (e.g. 2400×1350 with
+   `dpr: 1`) so the camera can zoom in without blurring; videos/ctm-flight-deck/demo/stage.html does this.
 2. Write the scenes in `script.ts`: `kind: 'animated'` scenes name a component; `kind: 'footage'`
    scenes name a hash route in the app. Narration is what the captions show; `spoken` fixes pronunciation.
 3. Restyle: `theme` overrides any palette key (see `src/kit/theme.ts`) so the motion graphics echo

@@ -45,6 +45,8 @@ export type VideoSpec = {
     /** Instead of appDir/page: a page that is already being served (a dev server you started), e.g. http://localhost:5173/demo. */
     url?: string;
     viewport: { width: number; height: number };
+    /** Device pixel ratio while recording (default 2). Use 1 for an oversized viewport (e.g. a 2400x1350 page drawn with CSS zoom). */
+    dpr?: number;
     /** CSS selector of the element that must have rendered content before a scene starts (default `#app`). */
     readySelector?: string;
   };
