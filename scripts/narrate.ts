@@ -1,8 +1,8 @@
 /**
  * Generate one narration clip per scene and a manifest with measured durations.
  *
- *   npm run narrate                 # the (only) video
- *   VIDEO=<id> npm run narrate      # pick one when several are registered
+ *   npm run narrate                 # the project of the folder you ran npm from
+ *   VIDEO=<id> npm run narrate      # or name one (see scripts/lib/project.ts)
  *
  * Provider is chosen from TTS_PROVIDER, else by which API key is present, else
  * the built-in macOS `say` voice (free, offline, good enough to cut to).
@@ -13,11 +13,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { loadEnv, root, readJson, writeJson } from './lib/env';
+import { loadEnv, readJson, writeJson } from './lib/env';
 import { audioDurationSec } from './lib/audio';
 import type { NarrationManifest, VideoSpec } from '../src/spec';
 import { transcribeWords } from './lib/assemblyai';
-import { pickVideo } from './lib/video';
+import { loadProject, show, type Project } from './lib/project';
 
 type Provider = 'say' | 'elevenlabs' | 'openai' | 'human';
 const DEFAULT_ELEVEN_VOICE = '21m00Tcm4TlvDq8ikWAM';
@@ -26,21 +26,21 @@ const elevenVoice = (spec: VideoSpec) => spec.voice.elevenlabs ?? process.env.EL
 const openaiVoice = (spec: VideoSpec) => spec.voice.openai ?? process.env.OPENAI_TTS_VOICE ?? 'onyx';
 const VOICE_EXTS = ['wav', 'mp3', 'm4a', 'aiff', 'aif'];
 
-/** Folder where a person's own recordings go, one file per scene: voice/<scene-id>.<wav|mp3|m4a|aiff>. */
-const voiceDir = (spec: VideoSpec) => path.join(root, 'videos', spec.id, 'voice');
+/** Folder where a person's own recordings go, one file per scene: <project>/voice/<scene-id>.<wav|mp3|m4a|aiff>. */
+const voiceDir = (p: Project) => path.join(p.dir, 'voice');
 
-function humanFile(spec: VideoSpec, sceneId: string): string | null {
+function humanFile(p: Project, sceneId: string): string | null {
   for (const ext of VOICE_EXTS) {
-    const f = path.join(voiceDir(spec), `${sceneId}.${ext}`);
+    const f = path.join(voiceDir(p), `${sceneId}.${ext}`);
     if (fs.existsSync(f)) return f;
   }
   return null;
 }
 
-function pickProvider(spec: VideoSpec): Provider {
+function pickProvider(p: Project): Provider {
   const forced = process.env.TTS_PROVIDER as Provider | undefined;
   if (forced) return forced;
-  if (fs.existsSync(voiceDir(spec)) && spec.scenes.some((sc) => humanFile(spec, sc.id))) return 'human';
+  if (fs.existsSync(voiceDir(p)) && p.spec.scenes.some((sc) => humanFile(p, sc.id))) return 'human';
   if (process.env.ELEVENLABS_API_KEY) return 'elevenlabs';
   if (process.env.OPENAI_API_KEY) return 'openai';
   return 'say';
@@ -84,11 +84,12 @@ async function synth(provider: Provider, text: string, out: string, spec: VideoS
   fs.writeFileSync(out, Buffer.from(await res.arrayBuffer()));
 }
 
-async function main(spec: VideoSpec): Promise<void> {
+async function main(p: Project): Promise<void> {
   loadEnv();
-  const provider = pickProvider(spec);
+  const { spec } = p;
+  const provider = pickProvider(p);
   const voice = voiceLabel(provider, spec);
-  const outDir = path.join(root, 'public', spec.id, 'narration');
+  const outDir = path.join(p.publicDir, 'narration');
   fs.mkdirSync(outDir, { recursive: true });
   const manifestPath = path.join(outDir, 'manifest.json');
   const prev = readJson<NarrationManifest>(manifestPath);
@@ -104,8 +105,8 @@ async function main(spec: VideoSpec): Promise<void> {
     let file: string;
     let source: string | null = null;
     if (provider === 'human') {
-      source = humanFile(spec, sc.id);
-      if (!source) throw new Error(`No recording for scene "${sc.id}". Expected ${path.relative(root, voiceDir(spec))}/${sc.id}.{${VOICE_EXTS.join(',')}}`);
+      source = humanFile(p, sc.id);
+      if (!source) throw new Error(`No recording for scene "${sc.id}". Expected ${show(voiceDir(p))}/${sc.id}.{${VOICE_EXTS.join(',')}}`);
       hash = crypto.createHash('sha1').update(fs.readFileSync(source)).update(aaiKey ? 'aai' : '').digest('hex').slice(0, 12);
       file = `${sc.id}${path.extname(source)}`;
     } else {
@@ -132,10 +133,10 @@ async function main(spec: VideoSpec): Promise<void> {
   }
   const total = scenes.reduce((a, s) => a + s.durationSec, 0);
   writeJson(manifestPath, { video: spec.id, provider, voice, generatedAt: new Date().toISOString(), scenes } satisfies NarrationManifest);
-  console.log(`Narration total ${total.toFixed(1)}s → ${path.relative(root, manifestPath)}`);
+  console.log(`Narration total ${total.toFixed(1)}s → ${show(manifestPath)}`);
 }
 
-pickVideo()
+loadProject()
   .then(main)
   .catch((e) => {
     console.error(e);

@@ -50,7 +50,7 @@ export function buildTimeline(spec: VideoSpec, manifest: NarrationManifest | nul
       leadFrames,
       narrFrames,
       tailFrames,
-      narrationFile: m ? `${spec.id}/${m.file}` : null,
+      narrationFile: m ? m.file : null,
       words: m?.words?.length ? m.words : null,
       footage,
     };

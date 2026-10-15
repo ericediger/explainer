@@ -4,14 +4,16 @@
   "private": true,
   "description": "Automated explainer-video pipeline: Playwright records the app, macOS/ElevenLabs narrate, Remotion composes and renders.",
   "scripts": {
-    "studio": "remotion studio src/index.ts",
+    "studio": "tsx scripts/studio.ts",
     "narrate": "tsx scripts/narrate.ts",
     "record": "tsx scripts/record.ts",
     "render": "tsx scripts/render.ts",
-    "build": "npm run narrate && npm run record && npm run render && npm run poster",
+    "build": "tsx scripts/build.ts",
     "stills": "tsx scripts/stills.ts",
     "poster": "tsx scripts/poster.ts",
-    "deliver": "tsx scripts/deliver.ts"
+    "deliver": "tsx scripts/deliver.ts",
+    "check": "tsx scripts/check.ts",
+    "projects": "tsx scripts/projects.ts"
   },
   "dependencies": {
     "@remotion/cli": "4.0.535",

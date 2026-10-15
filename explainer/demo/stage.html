@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EXPLAINER workbench</title>
+<link rel="stylesheet" href="stage.css">
+</head>
+<body>
+<!--
+  The recording stage for the EXPLAINER pipeline's own explainer. It is a small "workbench" page that lays the
+  real artifacts of one finished run (the week-prep video: its storyboard, narration clips, recorded footage,
+  cues and rendered frames, all snapshotted under assets/) next to a terminal. The terminal output is a replay
+  of the commands' real console format; nothing is re-run on camera. Hash picks the scene:
+  #storyboard #narrate #record #render #deliver
+-->
+<div id="app">
+  <header class="top">
+    <div class="brand">EXPLAINER<span class="path">week-prep/explainer</span></div>
+    <nav class="rail" id="rail" aria-label="pipeline">
+      <div class="stage" data-stage="script"><i>✎</i>script.ts</div>
+      <span class="arrow">→</span>
+      <div class="stage" data-stage="narrate"><i>1</i>narrate</div>
+      <span class="arrow">→</span>
+      <div class="stage" data-stage="record"><i>2</i>record</div>
+      <span class="arrow">→</span>
+      <div class="stage" data-stage="render"><i>3</i>render</div>
+      <span class="arrow">→</span>
+      <div class="stage" data-stage="poster"><i>4</i>poster</div>
+      <span class="arrow">→</span>
+      <div class="stage out" data-stage="media"><i>▤</i>app/media/</div>
+    </nav>
+  </header>
+
+  <main id="pane"></main>
+
+  <footer class="term">
+    <div class="termbar"><span></span><span></span><span></span><b>zsh — EXPLAINER</b></div>
+    <div id="out"></div>
+    <label class="prompt"><span class="ps">EXPLAINER ❯</span><input id="cmd" spellcheck="false" autocomplete="off" autocapitalize="off"></label>
+  </footer>
+</div>
+<div id="stageReady"></div>
+<script src="stage.js"></script>
+</body>
+</html>

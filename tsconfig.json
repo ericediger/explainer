@@ -10,7 +10,12 @@
     "resolveJsonModule": true,
     "noEmit": true,
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
-    "types": ["node"]
+    "types": ["node"],
+    "paths": {
+      "@explainer/*": ["./*"],
+      "@project": ["./explainer/index.ts"]
+    }
   },
-  "include": ["src", "videos", "scripts", "remotion.config.ts"]
+  "include": ["src", "scripts", "remotion.config.ts", "explainer"],
+  "exclude": ["node_modules", "build", "explainer/demo"]
 }

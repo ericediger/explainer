@@ -1,6 +1,6 @@
 /**
  * Shared types for an explainer video. A video is described declaratively in
- * `videos/<id>/script.ts`; the narrate/record/render scripts and the Remotion
+ * `<app>/explainer/script.ts`; the narrate/record/render scripts and the Remotion
  * compositions all read the same spec.
  */
 import type { Theme } from './kit/theme';
@@ -37,14 +37,8 @@ export type VideoSpec = {
   height: number;
   repoUrl: string;
   demoUrl: string;
-  /**
-   * The folder of the app this video is for, relative to the EXPLAINER project root (e.g. '../FLIGHT DECK').
-   * `npm run render` and `npm run poster` copy their result into <appFolder>/media/ as <id>-explainer.mp4 and
-   * explainer-poster.jpg, so the finished files live with the app; out/ is only the build folder.
-   */
-  appFolder?: string;
   record: {
-    /** Folder served to the recorder over http, relative to the EXPLAINER project root. */
+    /** Folder served to the recorder over http, relative to the app folder (the one that holds explainer/), e.g. '.' or 'demo'. */
     appDir?: string;
     /** Page inside appDir to open. */
     page?: string;
@@ -91,7 +85,7 @@ export type StyleSpec = {
 };
 
 export type MusicSpec = {
-  /** Path under public/<video>/, e.g. 'music/track.wav'. Must be at least as long as the video. */
+  /** Path under the project's public/ folder, e.g. 'music/track.wav'. Must be at least as long as the video. */
   file: string;
   /** Level between narration lines, 0..1 (default 0.3). */
   volume?: number;
@@ -121,7 +115,7 @@ export type Cue = { t: number; kind: 'zoom' | 'reset'; rect?: Rect; pad?: number
 
 export type Footage = {
   id: string;
-  /** Path under public/<video>/ */
+  /** Path under the build's public dir, e.g. 'footage/home.mp4'. */
   file: string;
   durationSec: number;
   /** Seconds into the clip at which the page was ready; scene time 0. */

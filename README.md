@@ -2,23 +2,32 @@
 
 [![Watch the 90-second explainer video](media/explainer-poster.jpg)](https://ericediger.github.io/explainer/media/pipeline-explainer.mp4)
 
-**[▶ Watch the 90-second explainer](https://ericediger.github.io/explainer/media/pipeline-explainer.mp4)** · made with the pipeline itself: [`videos/pipeline/`](videos/pipeline/)
+**[▶ Watch the 90-second explainer](https://ericediger.github.io/explainer/media/pipeline-explainer.mp4)** · made with the pipeline itself: [`explainer/`](explainer/)
 
-One command turns a storyboard into a narrated, captioned product video plus a README poster:
+One command, run from an app's folder, turns its storyboard into a narrated, captioned product video plus a README poster:
 
 ```bash
-npm run build          # narrate → record → render → poster   ⇒ <app>/media/<id>-explainer.mp4, <app>/media/explainer-poster.jpg
+cd "../FLIGHT DECK"
+npm --prefix ../EXPLAINER run build   # narrate → record → render → poster   ⇒ media/<id>-explainer.mp4, media/explainer-poster.jpg
 ```
 
-This folder lives at `_LOCAL APP DEVELOPMENT/EXPLAINER`, next to the apps it films. The finished video and
-poster belong to the app, not to this project: each storyboard names its app with `appFolder`
-(e.g. `'../FLIGHT DECK'`), and `render` and `poster` copy their result into that app's `media/` folder.
-`out/` is only the build folder. `npm run deliver` copies the files again without re-rendering.
+This folder is the engine. It lives at `_LOCAL APP DEVELOPMENT/EXPLAINER`, next to the apps it films, and
+holds nothing that belongs to them. Each video's source lives with its app and is committed to the app's repo:
 
-The pipeline is generic. Each video lives in `videos/<id>/` (storyboard, animated scenes, recorder
-choreography); nothing under `scripts/` or `src/` knows about a particular app. With one video in the
-folder the scripts pick it automatically; with several, choose with `VIDEO=<id> npm run build` or
-`--video=<id>` on any single step.
+| What | Where | In git |
+|------|-------|--------|
+| The engine: `scripts/`, `src/` (the kit), `node_modules`, `.env` | `EXPLAINER/` | this repo (not `.env`) |
+| A video's source: storyboard, recorder choreography, scenes, music | `<app>/explainer/` | the app's repo |
+| Narration clips, recorded footage, renders, stills | `EXPLAINER/build/<id>/` | never: a cache, delete it to start over |
+| The finished MP4 and poster | `<app>/media/` | the app's repo |
+
+`render` and `poster` copy their result into the `media/` folder next to `explainer/`;
+`npm run deliver` copies them again without re-rendering.
+
+Which video a command works on: the app folder you ran it from (it finds `explainer/` there or above);
+otherwise `--project=<app folder>` (or `EXPLAINER_PROJECT`), or `VIDEO=<id>` / `--video=<id>`, which looks the
+id up among the apps next to this folder. `npm run projects` lists them. This folder's own video is the
+`explainer/` project here (`VIDEO=pipeline`).
 
 Everything is code. Change a line of narration, re-run, and the voiceover,
 the footage pacing, the captions and the camera moves all follow.
@@ -26,38 +35,44 @@ the footage pacing, the captions and the camera moves all follow.
 ## How it works
 
 ```
-videos/week-prep/script.ts     the storyboard: scenes, narration, routes, caveats
+<app>/explainer/script.ts      the storyboard: scenes, narration, routes, caveats
         │
-        ├─ npm run narrate     scripts/narrate.ts  → public/week-prep/narration/*.wav + manifest.json
+        ├─ npm run narrate     scripts/narrate.ts  → build/<id>/public/narration/*.mp3 + manifest.json
         │                      TTS: macOS `say` by default; ElevenLabs or OpenAI if a key is in .env.
         │                      Clips are cached by text hash, so only edited lines regenerate.
         │
-        ├─ npm run record      scripts/record.ts   → public/week-prep/footage/*.mp4 + cues.json
+        ├─ npm run record      scripts/record.ts   → build/<id>/public/footage/*.mp4 + cues.json
         │                      Playwright drives the real app (served locally) with a visible
         │                      cursor, click ripples and a spotlight, one clip per scene, paced to
         │                      the narration. Zoom "cues" (element rectangles + timestamps) are
         │                      written alongside so the camera moves are computed, not hand-keyed.
         │
-        ├─ npm run render      scripts/render.ts   → out/week-prep.mp4 → <app>/media/week-prep-explainer.mp4
+        ├─ npm run render      scripts/render.ts   → build/<id>/<id>.mp4 → <app>/media/<id>-explainer.mp4
         │                      Remotion composes: themed motion-graphics background, the video's own
         │                      animated scenes (cold open, how-it-works diagram, outro), footage in
         │                      a browser frame with smooth zooms, lower-thirds, sentence captions,
         │                      narration audio, music bed ducked under the voice, progress bar.
         │
-        └─ npm run poster      scripts/poster.ts   → out/week-prep-poster.jpg → <app>/media/explainer-poster.jpg
+        └─ npm run poster      scripts/poster.ts   → build/<id>/<id>-poster.jpg → <app>/media/explainer-poster.jpg
                                One frame (spec.poster.atSec) with a play badge, for the README.
 
-<app> is the storyboard's appFolder; without one, the files stay in out/.
+<app> is the folder that holds explainer/. Remotion bundles one project per run: remotion.config.ts maps
+'@project' to <app>/explainer and '@explainer/…' to this folder, and serves build/<id>/public/ (the project's
+own public/ plus the generated narration/ and footage/).
 ```
 
 Useful extras:
 
 ```bash
 npm run studio                 # Remotion Studio: live preview, scrub the timeline
+npm run check                  # type-check the engine with this project before a long render
 npm run record -- assistant    # re-record just one scene
-npm run stills                 # one PNG per scene in out/stills/ for a quick visual check
+npm run stills                 # one PNG per scene in build/<id>/stills/ for a quick visual check
 npm run render -- --quality    # slower, higher-bitrate encode
+npm run projects               # every <app>/explainer/ next to this folder, by id
 ```
+
+From an app's folder, each is `npm --prefix ../EXPLAINER run <script>`.
 
 ## Narration voices
 
@@ -66,7 +81,7 @@ npm run render -- --quality    # slower, higher-bitrate encode
 | macOS say      | default, offline, free                                         | fine for cutting; robotic       |
 | ElevenLabs     | `ELEVENLABS_API_KEY` (+ optional `ELEVENLABS_VOICE_ID`)        | broadcast-grade                 |
 | OpenAI         | `OPENAI_API_KEY` (+ optional `OPENAI_TTS_VOICE`)               | very good                       |
-| Your own voice | put `videos/week-prep/voice/<scene-id>.wav` (or mp3/m4a) files | you                             |
+| Your own voice | put `<app>/explainer/voice/<scene-id>.wav` (or mp3/m4a) files | you                             |
 
 Copy `.env.example` to `.env`, add a key, run `npm run narrate`. `TTS_PROVIDER` forces a choice.
 The voice is per video: `voice.elevenlabs` (or `voice.openai`) in `script.ts` wins over the `.env` default.
@@ -80,7 +95,7 @@ Pronunciation fixes go in a scene's `spoken` field; `narration` is what the capt
 
 ## Background music
 
-Drop a track under `public/<video>/music/` and point the storyboard at it:
+Drop a track under `<app>/explainer/public/music/` and point the storyboard at it:
 
 ```ts
 music: { file: 'music/ready-to-move.wav', volume: 0.22, duckTo: 0.07, fadeOutSec: 3 },
@@ -93,22 +108,26 @@ The track must be at least as long as the video. Only the render step reads it, 
 
 ## Adding another app
 
-Everything app-specific lives in one folder:
+Everything app-specific lives in one folder inside the app:
 
 ```
-videos/<id>/
+<app>/explainer/
 ├── script.ts      the storyboard: scenes, narration, routes, voice, theme, music, poster moment
 ├── record.ts      recorder choreography: one action per footage scene (click, spotlight, zoom cues)
 ├── scenes/        the animated scenes as React components (cold open, diagram, outro …)
-└── index.ts       exports { spec, components } for Remotion
+├── index.ts       exports { spec, components } for Remotion
+├── public/        files the video reads with staticFile(): music/, logos …
+├── voice/         optional: your own narration, one file per scene
+└── demo/          optional: a stage page for the recorder to film
 ```
 
-1. Copy `videos/week-prep/` to `videos/<id>/` and set `id`, `name`, `repoUrl`, `demoUrl`, `appFolder` (the app's
-   folder next to this one, where the finished video and poster go), and
-   `record` (a static folder + page to serve, or `url` of a dev server you already started, plus the viewport,
-   and `readySelector` if the app's root element is not `#app`). For a narrow UI such as a browser side panel,
-   lay the page out at 1600×900 and draw it with CSS `zoom` into a larger viewport (e.g. 2400×1350 with
-   `dpr: 1`) so the camera can zoom in without blurring; videos/flight-deck/demo/stage.html does this.
+1. Copy the closest existing project into `<app>/explainer/` (`npm run projects` lists them; week-prep's is the
+   web-app example) and set `id`, `name`, `repoUrl`, `demoUrl`, and `record`: a folder + page to serve
+   (`appDir` is relative to the app folder, so `'.'` for a `demo.html` at the root), or `url` of a dev server
+   you already started, plus the viewport, and `readySelector` if the app's root element is not `#app`.
+   For a narrow UI such as a browser side panel, lay the page out at 1600×900 and draw it with CSS `zoom` into
+   a larger viewport (e.g. 2400×1350 with `dpr: 1`) so the camera can zoom in without blurring; the Flight Deck
+   stage (`FLIGHT DECK/explainer/demo/stage.html`) does this, loading the extension's own files from the repo root.
 2. Write the scenes in `script.ts`: `kind: 'animated'` scenes name a component; `kind: 'footage'`
    scenes name a hash route in the app. Narration is what the captions show; `spoken` fixes pronunciation.
 3. Restyle: `theme` overrides any palette key (see `src/kit/theme.ts`) so the motion graphics echo
@@ -116,17 +135,20 @@ videos/<id>/
    `voice.elevenlabs` picks the narrator; `music` adds a bed; `poster.atSec` picks the still.
 4. Write `record.ts`: for each footage scene, drive the page with the `SceneRecorder` (`until`,
    `moveTo`, `click`, `type`, `spot`, `zoom`, `zoomUnion`, `eval`) paced to the narration length.
-5. Rewrite or replace the components in `scenes/` and register them in `index.ts`.
-6. Add the folder to `videos/index.ts`. `VIDEO=<id> npm run build`.
+5. Rewrite or replace the components in `scenes/` and register them in `index.ts`. They import the kit as
+   `@explainer/src/kit/…` and resolve `react` and `remotion` from this folder, so the app needs no packages.
+   If the app has its own `tsconfig.json` or linter that covers the whole repo, exclude `explainer/` there.
+6. From the app's folder: `npm --prefix ../EXPLAINER run check`, then `run build`.
 
 Footage scenes are generic: anything the app can be driven to in a browser can be recorded.
 For a native app, swap the Playwright recorder for a screen capture and hand-write the cues.
 
-`videos/pipeline/` is the worked example of a project with no UI of its own (this pipeline): its footage
-comes from a small stage page, `demo/stage.html`, that lays the real artifacts of another video's run
-(storyboard, narration clips, recorded footage and cues, a rendered excerpt) next to a terminal; that
-snapshot is not kept in the repo, so snapshot a run into `demo/assets/` before re-recording. The
-terminal output is replayed, not re-run, and each scene carries an on-screen note saying so.
+`explainer/` in this folder is the worked example of a project with no UI of its own (this pipeline): its
+footage comes from a small stage page, `explainer/demo/stage.html`, that lays the real artifacts of another
+video's run (storyboard, narration clips, recorded footage and cues, a rendered excerpt) next to a terminal;
+that snapshot is not kept in the repo (`explainer/demo/assets/` and the outro's `explainer/public/posters/` are
+gitignored), so snapshot a run there before re-recording. The terminal output is replayed, not re-run, and
+each scene carries an on-screen note saying so.
 
 ## Style presets
 

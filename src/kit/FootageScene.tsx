@@ -86,7 +86,7 @@ const Placeholder: React.FC = () => {
   );
 };
 
-export const FootageScene: React.FC<{ footage: Footage | null; videoId: string; demoUrl: string }> = ({ footage, videoId, demoUrl }) => {
+export const FootageScene: React.FC<{ footage: Footage | null; demoUrl: string }> = ({ footage, demoUrl }) => {
   const theme = useTheme();
   const style = useStyle();
   const frame = useCurrentFrame();
@@ -118,7 +118,7 @@ export const FootageScene: React.FC<{ footage: Footage | null; videoId: string; 
         {footage ? (
           <div style={{ position: 'absolute', inset: 0, transformOrigin: '0 0', transform: `translate(${cam.tx}px, ${cam.ty}px) scale(${cam.scale})` }}>
             <OffthreadVideo
-              src={staticFile(`${videoId}/${footage.file}`)}
+              src={staticFile(footage.file)}
               startFrom={Math.round(footage.readyAt * fps)}
               muted
               style={{ width: F.w, height: F.h, display: 'block' }}

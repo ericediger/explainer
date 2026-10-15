@@ -7,6 +7,7 @@
  * timestamps) that Remotion later turns into smooth camera moves.
  */
 import fs from 'node:fs';
+import net from 'node:net';
 import path from 'node:path';
 import { spawn, execFileSync } from 'node:child_process';
 import { type Browser, type BrowserContext, type Page } from 'playwright';
@@ -291,6 +292,20 @@ os.execv(os.path.join(d, 'ffmpeg'), ['ffmpeg'] + args)
 `;
   fs.writeFileSync(target, script, { mode: 0o755 });
   console.log(`Bridged Playwright's ffmpeg to Remotion's build → ${target}`);
+}
+
+/** The first port from `from` up that nothing is listening on, so two recordings at once never share a server. */
+export async function freePort(from: number): Promise<number> {
+  for (let port = from; port < from + 50; port++) {
+    const free = await new Promise<boolean>((resolve) => {
+      const probe = net.createServer();
+      probe.once('error', () => resolve(false));
+      probe.once('listening', () => probe.close(() => resolve(true)));
+      probe.listen(port, '127.0.0.1');
+    });
+    if (free) return port;
+  }
+  throw new Error(`No free port between ${from} and ${from + 49}`);
 }
 
 /** Serve a folder over http so the app runs with a real origin (localStorage, clipboard). */

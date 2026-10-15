@@ -1,8 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-/** Project root: scripts are always run through npm from the EXPLAINER folder. */
-export const root = process.cwd();
+/** The EXPLAINER folder (the engine), wherever the command was started from. */
+export const root = path.resolve(__dirname, '..', '..');
 
 /** Minimal .env loader (no dependency). Existing env vars win. */
 export function loadEnv(): void {

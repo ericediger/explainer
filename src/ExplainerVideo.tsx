@@ -2,7 +2,7 @@ import React from 'react';
 import { AbsoluteFill, Audio, Sequence, interpolate, staticFile, useCurrentFrame } from 'remotion';
 import type { VideoSpec } from './spec';
 import type { Timeline, TimelineScene } from './timeline';
-import { videos } from '../videos';
+import { components } from '@project';
 import { Background } from './kit/Background';
 import { Captions } from './kit/Captions';
 import { FootageScene } from './kit/FootageScene';
@@ -45,7 +45,7 @@ const SceneView: React.FC<{ scene: TimelineScene; spec: VideoSpec; components: R
     <>
       <AbsoluteFill style={transitionStyle(style.transition, frame, scene.durationInFrames, last)}>
         {scene.spec.kind === 'footage' ? (
-          <FootageScene footage={scene.footage} videoId={spec.id} demoUrl={spec.demoUrl} />
+          <FootageScene footage={scene.footage} demoUrl={spec.demoUrl} />
         ) : Anim ? (
           <Anim scene={scene} spec={spec} />
         ) : (
@@ -88,12 +88,11 @@ const Music: React.FC<{ spec: VideoSpec; timeline: Timeline }> = ({ spec, timeli
     }
     return lerp(full, ducked, speaking) * fadeIn(f, 0, inF) * fadeOut(f, durationInFrames - outF, outF);
   };
-  return <Audio name="music" src={staticFile(`${spec.id}/${m.file}`)} startFrom={Math.round((m.startAtSec ?? 0) * fps)} volume={volume} />;
+  return <Audio name="music" src={staticFile(m.file)} startFrom={Math.round((m.startAtSec ?? 0) * fps)} volume={volume} />;
 };
 
 /** Generic explainer: background, one Sequence per scene, progress bar. Everything specific lives in the spec and registry. */
 export const ExplainerVideo: React.FC<ExplainerProps> = ({ spec, timeline }) => {
-  const components = videos.find((v) => v.spec.id === spec.id)?.components ?? {};
   const theme = resolveTheme(spec.theme);
   const style = resolveStyle(spec.style);
   return (
