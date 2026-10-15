@@ -147,20 +147,12 @@ for a headline face; the INVEST-IGATOR video is the worked example of the invers
 
 ## Requirements
 
-- Node 20+ and macOS (for `say` and `afinfo`; narration through an API provider works anywhere).
+- Node 20+.
 - `npm install`, then `npx playwright install chromium ffmpeg` once per machine.
 - Google Chrome installed is preferred for recording (`RECORD_BROWSER=chrome|chromium|/path` overrides).
 
 Setting up on a new machine: bump every `remotion` / `@remotion/*` entry in `package.json` to the
 current release before `npm install`; they must all match.
-
-### Older Macs (macOS 13)
-
-- Remotion builds after 4.0.438 ship an encoder compiled for macOS 15 and crash on 13; pin to 4.0.438.
-- Playwright no longer downloads Chromium or ffmpeg for macOS 13. The recorder uses your installed
-  Chrome, and `ensurePlaywrightFfmpeg()` writes a bridge script at
-  `~/Library/Caches/ms-playwright/ffmpeg-<rev>/ffmpeg-mac` that runs Remotion's bundled ffmpeg.
-  It is only written when Playwright's own ffmpeg is missing.
 
 ### Things that bit once
 
