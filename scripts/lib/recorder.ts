@@ -38,7 +38,14 @@ const HELPERS = `(() => {
   window.__rec = {
     move(x, y, ms) { cur.style.transitionDuration = ms + 'ms'; cur.style.transform = 'translate(' + (x - 6) + 'px,' + (y - 3) + 'px)'; },
     ripple(x, y) { rip.style.left = x + 'px'; rip.style.top = y + 'px'; rip.classList.remove('go'); void rip.offsetWidth; rip.classList.add('go'); },
-    spot(r, pad) { spot.style.left = (r.x - pad) + 'px'; spot.style.top = (r.y - pad) + 'px'; spot.style.width = (r.w + 2 * pad) + 'px'; spot.style.height = (r.h + 2 * pad) + 'px'; spot.classList.add('on'); },
+    spot(r, pad) {
+      // A first spotlight appears in place and fades in; only moves between targets glide (else it swoops in from 0,0).
+      const first = !spot.classList.contains('on');
+      if (first) spot.style.transition = 'opacity .35s';
+      spot.style.left = (r.x - pad) + 'px'; spot.style.top = (r.y - pad) + 'px'; spot.style.width = (r.w + 2 * pad) + 'px'; spot.style.height = (r.h + 2 * pad) + 'px';
+      if (first) { void spot.offsetWidth; spot.style.transition = ''; }
+      spot.classList.add('on');
+    },
     unspot() { spot.classList.remove('on'); },
     rect(sel) { const el = document.querySelector(sel); if (!el) return null; const b = el.getBoundingClientRect(); return { x: b.left, y: b.top, w: b.width, h: b.height }; },
   };
