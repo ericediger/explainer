@@ -1,8 +1,8 @@
 # EXPLAINER — automated explainer videos for your apps
 
-[![Watch the 90-second explainer video](media/explainer-poster.jpg)](media/pipeline-explainer.mp4)
+[![Watch the 90-second explainer video](media/explainer-poster.jpg)](https://ericediger.github.io/explainer/media/pipeline-explainer.mp4)
 
-**[▶ Watch the 90-second explainer](media/pipeline-explainer.mp4)** · made with the pipeline itself: [`videos/pipeline/`](videos/pipeline/)
+**[▶ Watch the 90-second explainer](https://ericediger.github.io/explainer/media/pipeline-explainer.mp4)** · made with the pipeline itself: [`videos/pipeline/`](videos/pipeline/)
 
 One command turns a storyboard into a narrated, captioned product video plus a README poster:
 
