@@ -27,8 +27,8 @@ export const spec: VideoSpec = {
     readySelector: '#stageReady',
   },
   voice: { say: 'Samantha', rate: 172, elevenlabs: 'G3qIj1Lb0GkRqMWsPD2C' },
-  // The app's own palette (dark blue, blue accent, green and magenta from its take and price bars). A sibling of the
-  // CTM Flight Deck video, told apart by the runway grid, full-width caption bar, slide transitions and Avenir headlines.
+  // The app's own palette (dark blue, blue accent, green and magenta from its take and price bars), set apart by the
+  // runway grid, full-width caption bar, slide transitions and Avenir headlines.
   style: { frame: 'bare', captions: 'bar', lowerThird: 'bar', background: 'glow-grid', transition: 'slide' },
   theme: {
     bg0: '#00202c',

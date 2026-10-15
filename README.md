@@ -108,7 +108,7 @@ videos/<id>/
    `record` (a static folder + page to serve, or `url` of a dev server you already started, plus the viewport,
    and `readySelector` if the app's root element is not `#app`). For a narrow UI such as a browser side panel,
    lay the page out at 1600×900 and draw it with CSS `zoom` into a larger viewport (e.g. 2400×1350 with
-   `dpr: 1`) so the camera can zoom in without blurring; videos/ctm-flight-deck/demo/stage.html does this.
+   `dpr: 1`) so the camera can zoom in without blurring; videos/flight-deck/demo/stage.html does this.
 2. Write the scenes in `script.ts`: `kind: 'animated'` scenes name a component; `kind: 'footage'`
    scenes name a hash route in the app. Narration is what the captions show; `spoken` fixes pronunciation.
 3. Restyle: `theme` overrides any palette key (see `src/kit/theme.ts`) so the motion graphics echo
@@ -124,7 +124,8 @@ For a native app, swap the Playwright recorder for a screen capture and hand-wri
 
 `videos/pipeline/` is the worked example of a project with no UI of its own (this pipeline): its footage
 comes from a small stage page, `demo/stage.html`, that lays the real artifacts of another video's run
-(storyboard, narration clips, recorded footage and cues, a rendered excerpt) next to a terminal. The
+(storyboard, narration clips, recorded footage and cues, a rendered excerpt) next to a terminal; that
+snapshot is not kept in the repo, so snapshot a run into `demo/assets/` before re-recording. The
 terminal output is replayed, not re-run, and each scene carries an on-screen note saying so.
 
 ## Style presets

@@ -6,8 +6,11 @@ import type { VideoSpec } from '../../src/spec';
  * The pipeline has no UI, so the footage comes from videos/pipeline/demo/stage.html: a small workbench page
  * that lays the real artifacts of one finished run (the week-prep video: its storyboard, narration clips and
  * manifest, recorded footage and cues, a rendered excerpt, the README it was published in) next to a terminal.
- * demo/assets/ is a committed snapshot of those files from 2026-10-13 (script.ts.txt keeps tsc away from it). The terminal replays each command's
- * real console format with the real numbers; nothing is re-run on camera, and every footage scene says so.
+ * The stage reads those files from demo/assets/, which is NOT kept in the repo (the pipeline does not store past
+ * projects' media): to re-record, snapshot a run there first (script.ts.txt, manifest.json, cues.json, audio/,
+ * footage/home.mp4, week-prep-excerpt.mp4, media/explainer-poster.jpg, README.md) and put three poster JPGs
+ * in public/pipeline/posters/ for the outro. The terminal replays each command's real console format with
+ * the real numbers; nothing is re-run on camera, and every footage scene says so.
  *
  * The finished video lands in ../EXPLAINER/media/ (appFolder '.'), next to this project's README.
  * Edit the narration here and re-run `VIDEO=pipeline npm run build`.
