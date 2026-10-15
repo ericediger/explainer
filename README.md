@@ -1,5 +1,9 @@
 # EXPLAINER — automated explainer videos for your apps
 
+[![Watch the 90-second explainer video](media/explainer-poster.jpg)](media/pipeline-explainer.mp4)
+
+**[▶ Watch the 90-second explainer](media/pipeline-explainer.mp4)** · made with the pipeline itself: [`videos/pipeline/`](videos/pipeline/)
+
 One command turns a storyboard into a narrated, captioned product video plus a README poster:
 
 ```bash
@@ -117,6 +121,11 @@ videos/<id>/
 
 Footage scenes are generic: anything the app can be driven to in a browser can be recorded.
 For a native app, swap the Playwright recorder for a screen capture and hand-write the cues.
+
+`videos/pipeline/` is the worked example of a project with no UI of its own (this pipeline): its footage
+comes from a small stage page, `demo/stage.html`, that lays the real artifacts of another video's run
+(storyboard, narration clips, recorded footage and cues, a rendered excerpt) next to a terminal. The
+terminal output is replayed, not re-run, and each scene carries an on-screen note saying so.
 
 ## Style presets
 
