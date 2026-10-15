@@ -1,6 +1,6 @@
 /**
  * Render the finished video.
- *   npm run render                 → out/<id>.mp4
+ *   npm run render                 → out/<id>.mp4, then copied to <appFolder>/media/<id>-explainer.mp4
  *   npm run render -- --quality    → slower, higher-bitrate encode
  *   VIDEO=<id> npm run render      → pick a video when several are registered
  */
@@ -8,6 +8,7 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { root } from './lib/env';
 import { pickVideo } from './lib/video';
+import { deliver } from './lib/deliver';
 
 async function main(): Promise<void> {
   const spec = await pickVideo();
@@ -20,6 +21,7 @@ async function main(): Promise<void> {
     { stdio: 'inherit', cwd: root },
   );
   console.log(`\n✓ ${path.relative(root, out)}`);
+  deliver(spec, 'video');
 }
 
 main().catch((e) => {

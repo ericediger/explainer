@@ -17,6 +17,7 @@ export const spec: VideoSpec = {
   // Private repo and an internal tool: neither URL is shown on screen (bare frame, custom outro).
   repoUrl: 'github.com/ericediger/ctm-flight-deck',
   demoUrl: '',
+  // No appFolder: the CTM-branded build is not on this drive (only CTM FLIGHT DECK.zip), so the files stay in out/.
   record: {
     appDir: 'videos/ctm-flight-deck/demo',
     page: 'stage.html',

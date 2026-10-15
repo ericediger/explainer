@@ -3,10 +3,10 @@ import type { VideoSpec } from '../../src/spec';
 /**
  * Storyboard for the Flight Deck explainer (the public, unbranded build: github.com/ericediger/flight-deck).
  * Footage comes from videos/flight-deck/demo/stage.html: a Chrome-style window with a fictional inbox and
- * the extension's real side panel (demo/app/ is a gitignored snapshot of the repo; refresh it with
- * `cp -R <repo>/sidepanel.* <repo>/icons videos/flight-deck/demo/app/`). mocks.js answers the Anthropic,
- * SerpApi and OpenAI calls with fictional PHL trips. Edit the narration here and re-run
- * `VIDEO=flight-deck npm run build`; the finished MP4 and poster are then copied into the app's media/.
+ * the extension's real side panel (demo/app/ is gitignored and holds symlinks to sidepanel.* and icons/ in
+ * ../FLIGHT DECK, so the footage always films the current build). mocks.js answers the Anthropic, SerpApi
+ * and OpenAI calls with fictional PHL trips. Edit the narration here and re-run `VIDEO=flight-deck npm run build`;
+ * render and poster copy the finished MP4 and poster into ../FLIGHT DECK/media/ (appFolder below).
  */
 export const spec: VideoSpec = {
   id: 'flight-deck',
@@ -17,6 +17,7 @@ export const spec: VideoSpec = {
   // Public repo, shown in the outro. No hosted demo page (yet).
   repoUrl: 'github.com/ericediger/flight-deck',
   demoUrl: '',
+  appFolder: '../FLIGHT DECK',
   record: {
     appDir: 'videos/flight-deck/demo',
     page: 'stage.html',
@@ -25,7 +26,7 @@ export const spec: VideoSpec = {
     dpr: 1,
     readySelector: '#stageReady',
   },
-  voice: { say: 'Samantha', rate: 172, elevenlabs: 'q0IMILNRPxOgtBTS4taI' },
+  voice: { say: 'Samantha', rate: 172, elevenlabs: 'G3qIj1Lb0GkRqMWsPD2C' },
   // The app's own palette (dark blue, blue accent, green and magenta from its take and price bars). A sibling of the
   // CTM Flight Deck video, told apart by the runway grid, full-width caption bar, slide transitions and Avenir headlines.
   style: { frame: 'bare', captions: 'bar', lowerThird: 'bar', background: 'glow-grid', transition: 'slide' },
@@ -51,7 +52,7 @@ export const spec: VideoSpec = {
     captionBg: 'rgba(0,26,37,.84)',
     captionInk: '#ffffff',
   },
-  poster: { atSec: 42 },
+  poster: { atSec: 39.4 },
   music: { file: 'music/product-groove.mp3', volume: 0.22, duckTo: 0.07, fadeOutSec: 3 },
   scenes: [
     {

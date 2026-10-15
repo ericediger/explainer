@@ -3,8 +3,13 @@
 One command turns a storyboard into a narrated, captioned product video plus a README poster:
 
 ```bash
-npm run build          # narrate → record → render → poster   ⇒ out/<id>.mp4, out/<id>-poster.jpg
+npm run build          # narrate → record → render → poster   ⇒ <app>/media/<id>-explainer.mp4, <app>/media/explainer-poster.jpg
 ```
+
+This folder lives at `_LOCAL APP DEVELOPMENT/EXPLAINER`, next to the apps it films. The finished video and
+poster belong to the app, not to this project: each storyboard names its app with `appFolder`
+(e.g. `'../FLIGHT DECK'`), and `render` and `poster` copy their result into that app's `media/` folder.
+`out/` is only the build folder. `npm run deliver` copies the files again without re-rendering.
 
 The pipeline is generic. Each video lives in `videos/<id>/` (storyboard, animated scenes, recorder
 choreography); nothing under `scripts/` or `src/` knows about a particular app. With one video in the
@@ -29,14 +34,16 @@ videos/week-prep/script.ts     the storyboard: scenes, narration, routes, caveat
         │                      the narration. Zoom "cues" (element rectangles + timestamps) are
         │                      written alongside so the camera moves are computed, not hand-keyed.
         │
-        ├─ npm run render      scripts/render.ts   → out/week-prep.mp4
+        ├─ npm run render      scripts/render.ts   → out/week-prep.mp4 → <app>/media/week-prep-explainer.mp4
         │                      Remotion composes: themed motion-graphics background, the video's own
         │                      animated scenes (cold open, how-it-works diagram, outro), footage in
         │                      a browser frame with smooth zooms, lower-thirds, sentence captions,
         │                      narration audio, music bed ducked under the voice, progress bar.
         │
-        └─ npm run poster      scripts/poster.ts   → out/week-prep-poster.jpg
+        └─ npm run poster      scripts/poster.ts   → out/week-prep-poster.jpg → <app>/media/explainer-poster.jpg
                                One frame (spec.poster.atSec) with a play badge, for the README.
+
+<app> is the storyboard's appFolder; without one, the files stay in out/.
 ```
 
 Useful extras:
@@ -92,7 +99,8 @@ videos/<id>/
 └── index.ts       exports { spec, components } for Remotion
 ```
 
-1. Copy `videos/week-prep/` to `videos/<id>/` and set `id`, `name`, `repoUrl`, `demoUrl`, and
+1. Copy `videos/week-prep/` to `videos/<id>/` and set `id`, `name`, `repoUrl`, `demoUrl`, `appFolder` (the app's
+   folder next to this one, where the finished video and poster go), and
    `record` (a static folder + page to serve, or `url` of a dev server you already started, plus the viewport,
    and `readySelector` if the app's root element is not `#app`). For a narrow UI such as a browser side panel,
    lay the page out at 1600×900 and draw it with CSS `zoom` into a larger viewport (e.g. 2400×1350 with

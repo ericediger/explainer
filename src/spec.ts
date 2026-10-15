@@ -37,6 +37,12 @@ export type VideoSpec = {
   height: number;
   repoUrl: string;
   demoUrl: string;
+  /**
+   * The folder of the app this video is for, relative to the EXPLAINER project root (e.g. '../FLIGHT DECK').
+   * `npm run render` and `npm run poster` copy their result into <appFolder>/media/ as <id>-explainer.mp4 and
+   * explainer-poster.jpg, so the finished files live with the app; out/ is only the build folder.
+   */
+  appFolder?: string;
   record: {
     /** Folder served to the recorder over http, relative to the EXPLAINER project root. */
     appDir?: string;

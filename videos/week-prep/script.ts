@@ -12,6 +12,7 @@ export const spec: VideoSpec = {
   height: 1080,
   repoUrl: 'github.com/ericediger/week-prep',
   demoUrl: 'ericediger.github.io/week-prep/demo.html',
+  appFolder: '../WEEK PREP/week-prep',
   record: {
     appDir: '../week-prep',
     page: 'demo.html',

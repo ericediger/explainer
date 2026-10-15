@@ -13,6 +13,7 @@ export const spec: VideoSpec = {
   height: 1080,
   repoUrl: 'github.com/ericediger/INVEST-IGATOR',
   demoUrl: 'ericediger.github.io/INVEST-IGATOR/demo',
+  appFolder: '../INVEST-IGATOR',
   record: {
     url: 'http://127.0.0.1:5198/',
     viewport: { width: 1600, height: 900 },

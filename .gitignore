@@ -19,5 +19,5 @@ videos/invest-igator/demo/.app/
 # CTM Flight Deck demo: a snapshot of the private app code for the recorder (copy from the app folder)
 videos/ctm-flight-deck/demo/app/
 
-# Flight Deck (public build) demo: a snapshot of github.com/ericediger/flight-deck for the recorder
+# Flight Deck (public build) demo: symlinks to the extension files in ../FLIGHT DECK for the recorder
 videos/flight-deck/demo/app/
