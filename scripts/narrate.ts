@@ -47,11 +47,24 @@ function pickProvider(p: Project): Provider {
   return 'say';
 }
 
+/** The voice itself: part of each clip's cache key and the manifest, never printed. */
 function voiceLabel(provider: Provider, spec: VideoSpec): string {
   if (provider === 'say') return `${spec.voice.say}@${spec.voice.rate}`;
   if (provider === 'elevenlabs') return elevenVoice(spec);
   if (provider === 'human') return 'your recording';
   return openaiVoice(spec);
+}
+
+/** Where the voice comes from, for the log. A voice set in the environment (.env or the shell) is named, not shown. */
+function voiceSource(provider: Provider, spec: VideoSpec): string {
+  if (provider === 'say') return `${spec.voice.say}@${spec.voice.rate}`;
+  if (provider === 'human') return 'your recordings';
+  if (provider === 'elevenlabs') {
+    if (spec.voice.elevenlabs) return `voice.elevenlabs ${spec.voice.elevenlabs} from script.ts`;
+    return process.env.ELEVENLABS_VOICE_ID ? 'ELEVENLABS_VOICE_ID from the environment' : `the engine's default voice ${DEFAULT_ELEVEN_VOICE}`;
+  }
+  if (spec.voice.openai) return `voice.openai ${spec.voice.openai} from script.ts`;
+  return process.env.OPENAI_TTS_VOICE ? 'OPENAI_TTS_VOICE from the environment' : 'the default voice onyx';
 }
 
 async function synth(provider: Provider, text: string, out: string, spec: VideoSpec): Promise<void> {
@@ -102,7 +115,7 @@ async function main(p: Project): Promise<void> {
   const prev = readJson<NarrationManifest>(manifestPath);
   const prevById = new Map((prev?.scenes ?? []).map((s) => [s.id, s]));
 
-  console.log(`Narrating "${spec.name}" with ${provider} (${voice})`);
+  console.log(`Narrating "${spec.name}" with ${provider} (${voiceSource(provider, spec)})`);
   const scenes: NarrationManifest['scenes'] = [];
   const aaiKey = process.env.ASSEMBLYAI_API_KEY;
   if (provider === 'human' && !aaiKey) console.log('  (no ASSEMBLYAI_API_KEY: captions will be timed proportionally rather than to your words)');

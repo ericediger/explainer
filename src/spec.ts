@@ -44,9 +44,22 @@ export type VideoSpec = {
     page?: string;
     /** Instead of appDir/page: a page that is already being served (a dev server you started), e.g. http://localhost:5173/demo. */
     url?: string;
+    /** The page's size in screen pixels, and the clip's size in video pixels (whatever dpr is). */
     viewport: { width: number; height: number };
     /** Device pixel ratio while recording (default 2). Use 1 for an oversized viewport (e.g. a 2400x1350 page drawn with CSS zoom). */
     dpr?: number;
+    /**
+     * CSS zoom applied to the page's <html> from its first script (default 1). With viewport 2560x1440 and zoom 2, the
+     * app lays out as at 1280x720 but is recorded with two video pixels per CSS pixel, so camera zooms stay sharp.
+     * The recorder sizes its cursor, ripple and spotlight to match and reads paddings in the page's CSS pixels.
+     */
+    zoom?: number;
+    /**
+     * Extra CSS for the recorded page, applied from its first script and moved after the app's own styles once the
+     * document has loaded. With `zoom`, viewport units still measure the unzoomed viewport, so a full-screen height
+     * needs dividing: `html .min-h-screen { min-height: calc(100vh / 2); }`.
+     */
+    css?: string;
     /** CSS selector of the element that must have rendered content before a scene starts (default `#app`). */
     readySelector?: string;
   };
@@ -67,6 +80,13 @@ export type VideoSpec = {
   poster?: { atSec: number };
   /** Optional music bed under the whole video, ducked while narration plays. */
   music?: MusicSpec;
+  /**
+   * Optional: bring the finished video's audio to this loudness after the render. Web players expect about -14 to
+   * -16 LUFS; a narrated render comes out much quieter. It is one gain for the whole mix, so voice and music keep their
+   * balance, unless that gain would push the true peak above `truePeak`: then the peaks are limited instead (ffmpeg
+   * loudnorm's dynamic mode), and `render` says so. Without it, the render still measures and prints the loudness.
+   */
+  loudness?: { /** Integrated loudness to reach (default -16 LUFS). */ lufs?: number; /** Highest true peak (default -1.5 dBTP). */ truePeak?: number };
   scenes: SceneSpec[];
 };
 

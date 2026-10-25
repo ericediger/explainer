@@ -7,7 +7,7 @@
 | Field | What it does |
 |---|---|
 | `id` | Short slug. Names the build folder (`<engine>/build/<id>/`), the video (`media/<id>-explainer.mp4`) and the Remotion composition. |
-| `name` | The app's name. The starter's Title and Outro show it. |
+| `name` | The app's name. The starter's ColdOpen, Title and Outro show it. |
 | `fps` | 30. |
 | `width`, `height` | Keep 1920 × 1080. The kit's layout is fixed to that size. |
 | `repoUrl` | Not used by the kit. The starter's outro shows it when it's set. |
@@ -18,6 +18,7 @@
 | `style` | Which variant each kit piece uses (below). |
 | `poster` | `{ atSec }`: the moment frozen as the README poster. |
 | `music` | An optional music bed (below). |
+| `loudness` | Optional `{ lufs?, truePeak? }`: after the render, bring the audio to this loudness (below). |
 | `scenes` | The scenes in order. |
 
 ## SceneSpec
@@ -27,7 +28,7 @@
 | `id` | Unique slug. Keys the narration clip, `record.ts`'s action and the stills' file names. |
 | `kind` | `'animated'` draws a React component; `'footage'` films the app. |
 | `component` | For animated scenes: a key in `index.ts`'s `components`. |
-| `route` | For footage scenes: opened as `#<route>` on the record page. Use `''` to open the page as it is. |
+| `route` | For footage scenes: opened as `#<route>` on the record page. Use `''` to open the page as it is. A history-based router ignores the hash unless a stage page turns it into a path ([recording.md](recording.md), "A stage for an app with a backend"). |
 | `title`, `subtitle` | The scene's on-screen title (the lower third). `title: ''` hides it, which suits openers and outros. |
 | `narration` | What the voice says and the captions show. |
 | `spoken` | Optional text for the voice instead of `narration`, for pronunciation fixes. Captions still show `narration`. |
@@ -76,6 +77,8 @@ Two videos with the same style look like siblings, so vary it per app.
 
 The defaults are a dark, neutral stage, so most apps only need `accent` and `accentDeep`.
 
+A font named in `font` or `display` (for example the app's `Montserrat`) is used only when it's installed on the machine that renders, or loaded from `explainer/public/fonts/` with `loadFont` in `index.ts` ([scenes.md](scenes.md), Fonts). A font the app loads from Google Fonts at runtime is not available to the render. Otherwise the next font in the stack is used without a warning, so check the stills.
+
 A light look needs `background: 'paper'` plus light values for `bg0`, `bg1`, `panel`, `panel2`, `line`, `ink`, `muted`, `glowA` and `glowB`. Keep `captionBg` dark and `captionInk` light so captions stay readable.
 
 Use colours as hex (`#rrggbb`): the starter scenes append alpha digits to `accent` for glows.
@@ -85,10 +88,10 @@ Use colours as hex (`#rrggbb`): the starter scenes append alpha digits to `accen
 Put a track in `<app>/explainer/public/music/` and point at it:
 
 ```ts
-music: { file: 'music/bed.mp3', volume: 0.22, duckTo: 0.07, fadeOutSec: 3 },
+music: { file: 'music/bed.mp3', volume: 0.14, duckTo: 0.05, fadeOutSec: 3 },
 ```
 
-- `volume` is the level between narration lines.
+- `volume` is the level between narration lines. A produced track is usually far louder than a narration clip, so 0.12–0.15 keeps the bed under the voice between lines; at 0.2, the engine's bed comes within about 3 dB of the voice.
 - `duckTo` is the level while a line plays, ramped over `duckRampSec` (default 0.6).
 - `fadeInSec` and `fadeOutSec` default to 1.5 and 3.
 - `startAtSec` skips into the track.
@@ -97,6 +100,28 @@ music: { file: 'music/bed.mp3', volume: 0.22, duckTo: 0.07, fadeOutSec: 3 },
 The engine ships one bed you may use: `<engine>/explainer/public/music/product-groove.mp3`, four minutes, generated with ElevenLabs and covered by the repo's MIT license. Copy it into the app's `public/music/`.
 
 Leave music out when the user doesn't want it. Ask, rather than adding a track nobody chose.
+
+## Loudness (`loudness`)
+
+`render` ends by measuring the finished audio: `loudness -26.2 LUFS integrated, true peak -6.6 dBTP`. Narration voices come out quiet, around -24 LUFS on their own, while web players expect about -14 to -16 LUFS, so an unnormalized explainer plays noticeably quieter than the videos around it. To fix that, set:
+
+```ts
+loudness: { lufs: -16 },   // truePeak defaults to -1.5 dBTP
+```
+
+`render` then normalizes the audio with ffmpeg's `loudnorm`, in two passes; only the audio is re-encoded. How depends on the peaks:
+
+- **One gain (linear).** When raising the whole mix to the target keeps its true peak under `truePeak`, the voice and the music go up together and keep their balance.
+- **Peaks limited (dynamic).** When one gain would push the true peak over `truePeak`, `loudnorm` adjusts the level as it goes and limits the loudest peaks. The result still reaches the target and doesn't clip, but the balance between voice and music can shift a little. A narrated explainer often lands here: going from -22 to -16 LUFS needs 6 dB, and a peak at -5 dBTP would end up above -1.5.
+
+The render log says which happened:
+
+```
+loudness -16.1 LUFS integrated, true peak -1.5 dBTP
+normalized to -16 LUFS with its peaks limited (dynamic): one gain would have put the true peak at 0.8 dBTP, above -1.5. …
+```
+
+To keep one gain, lower `lufs` to the level the log suggests, or lower the music's `volume` when the bed makes the peaks. Set the music's `volume` first in any case, since normalizing raises the bed with the voice. After changing `loudness`, re-run `render` and `poster`.
 
 ## Poster (`poster.atSec`)
 

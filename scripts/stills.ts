@@ -3,12 +3,14 @@
  *   npm run stills                 → build/<id>/stills/<nn>-<scene>.png
  *   npm run stills -- home polish  → only those scenes
  *   npm run stills -- --late       → at 78% through each scene instead of the midpoint, as <nn>-<scene>-late.png
+ * Every run also refreshes build/<id>/stills/contact-sheet.png: all stills of the current cut in one image.
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { readJson } from './lib/env';
 import { buildTimeline } from '../src/timeline';
 import type { CuesFile, NarrationManifest } from '../src/spec';
+import { writeContactSheet } from './lib/contact-sheet';
 import { loadProject, remotion, show } from './lib/project';
 
 async function main(): Promise<void> {
@@ -22,13 +24,20 @@ fs.mkdirSync(dir, { recursive: true });
 const late = process.argv.includes('--late');
 const at = late ? 0.78 : 0.5;
 const only = process.argv.slice(2).filter((a) => !a.startsWith('-'));
+const names = tl.scenes.map((s, i) => `${String(i + 1).padStart(2, '0')}-${s.spec.id}`);
 tl.scenes.forEach((s, i) => {
   if (only.length && !only.includes(s.spec.id)) return;
   const frame = s.from + Math.floor(s.durationInFrames * at);
-  const out = path.join(dir, `${String(i + 1).padStart(2, '0')}-${s.spec.id}${late ? '-late' : ''}.png`);
+  const out = path.join(dir, `${names[i]}${late ? '-late' : ''}.png`);
   remotion(project, ['still', 'src/index.ts', spec.id, out, `--frame=${frame}`, '--log=error']);
   console.log(`✓ ${show(out)} (frame ${frame})`);
 });
+try {
+  const sheet = await writeContactSheet(dir, names);
+  if (sheet) console.log(`✓ ${show(sheet)} (every still of this cut, to show in one image)`);
+} catch (e) {
+  console.warn(`  (no contact sheet: ${(e as Error).message.split('\n')[0]})`);
+}
 }
 
 main().catch((e) => {

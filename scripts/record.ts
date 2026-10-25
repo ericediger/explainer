@@ -10,39 +10,11 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { chromium } from 'playwright';
-import { root, readJson, writeJson } from './lib/env';
+import { readJson, writeJson } from './lib/env';
+import { launchBrowser } from './lib/browser';
 import { ensurePlaywrightFfmpeg, freePort, SceneRecorder, serveStatic } from './lib/recorder';
 import type { CuesFile, NarrationManifest } from '../src/spec';
 import { loadActions, loadProject, show } from './lib/project';
-
-/**
- * Prefer the installed Google Chrome (it has every codec and font the app expects), then Remotion's
- * headless shell, then Playwright's own Chromium. Override with RECORD_BROWSER=chrome|chromium|/path/to/binary.
- */
-async function launchBrowser() {
-  const pref = process.env.RECORD_BROWSER;
-  const arch = process.arch === 'arm64' ? 'mac-arm64' : 'mac-x64';
-  const shell = path.join(root, 'node_modules', '.remotion', 'chrome-headless-shell', arch, `chrome-headless-shell-${arch}`, 'chrome-headless-shell');
-  const attempts: { label: string; opts: Parameters<typeof chromium.launch>[0] }[] = pref
-    ? [pref === 'chrome' || pref === 'chromium' ? { label: pref, opts: pref === 'chrome' ? { channel: 'chrome' } : {} } : { label: pref, opts: { executablePath: pref } }]
-    : [
-        { label: 'Google Chrome', opts: { channel: 'chrome' } },
-        ...(fs.existsSync(shell) ? [{ label: 'Remotion headless shell', opts: { executablePath: shell } }] : []),
-        { label: 'Playwright Chromium', opts: {} },
-      ];
-  let lastErr: unknown;
-  for (const a of attempts) {
-    try {
-      const b = await chromium.launch({ headless: true, ...a.opts });
-      console.log(`Recording with ${a.label} (${b.version()})`);
-      return b;
-    } catch (e) {
-      lastErr = e;
-    }
-  }
-  throw lastErr;
-}
 
 async function main(): Promise<void> {
   const project = await loadProject();
@@ -74,8 +46,17 @@ async function main(): Promise<void> {
 
   const only = process.argv.slice(2).filter((a) => !a.startsWith('-'));
   ensurePlaywrightFfmpeg();
-  const browser = await launchBrowser();
-  const rec = new SceneRecorder(browser, { baseUrl, outDir, viewport: spec.record.viewport, dpr: spec.record.dpr ?? 2, readySelector: spec.record.readySelector });
+  const { browser, label } = await launchBrowser();
+  console.log(`Recording with ${label} (${browser.version()})`);
+  const rec = new SceneRecorder(browser, {
+    baseUrl,
+    outDir,
+    viewport: spec.record.viewport,
+    dpr: spec.record.dpr ?? 2,
+    readySelector: spec.record.readySelector,
+    zoom: spec.record.zoom,
+    css: spec.record.css,
+  });
 
   try {
     for (const sc of spec.scenes) {

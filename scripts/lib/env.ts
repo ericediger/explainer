@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-/** The EXPLAINER folder (the engine), wherever the command was started from. */
+/** The engine's folder, wherever the command was started from. */
 export const root = path.resolve(__dirname, '..', '..');
 
 /** Minimal .env loader (no dependency). Existing env vars win. */

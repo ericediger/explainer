@@ -59,7 +59,7 @@ function subdirs(dir: string): string[] {
 
 /**
  * Projects next to the engine: this folder's own explainer/, then <apps>/<app>/explainer and <apps>/<group>/<app>/explainer,
- * where <apps> is the folder holding EXPLAINER (EXPLAINER_APPS overrides it).
+ * where <apps> is the folder holding the engine (EXPLAINER_APPS overrides it; the name is from the engine's first name).
  */
 export function discoverProjects(): { id: string; dir: string }[] {
   const apps = process.env.EXPLAINER_APPS ? path.resolve(process.env.EXPLAINER_APPS) : path.dirname(root);
@@ -80,7 +80,7 @@ export function discoverProjects(): { id: string; dir: string }[] {
 const listing = (all: { id: string; dir: string }[]): string =>
   all.length ? all.map((p) => `\n  ${p.id.padEnd(16)} ${show(p.dir)}`).join('') : ' none found next to this folder';
 
-/** Where the command was started: npm sets INIT_CWD, also for `npm --prefix <EXPLAINER> run …` from an app folder. */
+/** Where the command was started: npm sets INIT_CWD, also for `npm --prefix "<engine>" run …` from an app folder. */
 const invokedFrom = (): string => process.env.INIT_CWD || process.cwd();
 
 /**
@@ -112,7 +112,7 @@ export function resolveProjectDir(argv: string[] = process.argv.slice(2)): strin
     if (hit) return hit;
   }
   throw new Error(
-    `Which video? Run from the app's folder (npm --prefix <EXPLAINER> run build), or pass --project=<app folder> or VIDEO=<id>. Projects:${listing(discoverProjects())}`,
+    `Which video? Run from the app's folder (npm --prefix "${root}" run build), or pass --project=<app folder> or VIDEO=<id>. Projects:${listing(discoverProjects())}`,
   );
 }
 

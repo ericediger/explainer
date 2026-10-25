@@ -1,6 +1,6 @@
 /**
  * The whole run for one project: narrate → record → render → poster.
- *   npm --prefix <EXPLAINER> run build      from the app's folder
+ *   npm --prefix "<engine>" run build        from the app's folder
  *   npm run build -- --project=<app folder>  from here
  *   VIDEO=<id> npm run build                 by storyboard id
  */

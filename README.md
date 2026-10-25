@@ -160,10 +160,15 @@ Everything app-specific lives in one folder inside the app:
    Or copy the closest existing project instead (`npm run projects` lists them; week-prep's is the web-app
    example). Then set `id`, `name`, `repoUrl`, `demoUrl`, and `record`: a folder + page to serve
    (`appDir` is relative to the app folder, so `'.'` for a `demo.html` at the root), or `url` of a dev server
-   you already started, plus the viewport, and `readySelector` if the app's root element is not `#app`.
-   For a narrow UI such as a browser side panel, lay the page out at 1600×900 and draw it with CSS `zoom` into
-   a larger viewport (e.g. 2400×1350 with `dpr: 1`) so the camera can zoom in without blurring; the Flight Deck
-   stage (`FLIGHT DECK/explainer/demo/stage.html`) does this, loading the extension's own files from the repo root.
+   you already started, plus the viewport, and `readySelector`: an element that appears once the page has its
+   data (the app's root also holds its loading spinner).
+   The clip is always the viewport's size, whatever `dpr` is, so zooms enlarge it. To keep zoomed text sharp, set
+   `record: { viewport: { width: 2560, height: 1440 }, dpr: 1, zoom: 2 }`: the app lays out as at 1280×720 and is
+   drawn twice as large (full-screen heights need dividing in `record.css`). A fixed-size stage can instead scale a
+   wrapper with CSS `zoom`, as the Flight Deck stage (`FLIGHT DECK/explainer/demo/stage.html`) does, loading the
+   extension's own files from the repo root. An app that needs its backend or real data is
+   filmed from its own frontend built into a stage with a mocked API; see "A stage for an app with a backend" in
+   [`skills/sizzle/references/recording.md`](skills/sizzle/references/recording.md).
 2. Write the scenes in `script.ts`: `kind: 'animated'` scenes name a component; `kind: 'footage'`
    scenes name a hash route in the app. Narration is what the captions show; `spoken` fixes pronunciation.
 3. Restyle: `theme` overrides any palette key (see `src/kit/theme.ts`) so the motion graphics echo
@@ -174,7 +179,7 @@ Everything app-specific lives in one folder inside the app:
 5. Rewrite or replace the components in `scenes/` and register them in `index.ts`. They import the kit as
    `@explainer/src/kit/…` and resolve `react` and `remotion` from this folder, so the app needs no packages.
    If the app has its own `tsconfig.json` or linter that covers the whole repo, exclude `explainer/` there.
-6. From the app's folder: `npm --prefix ../SIZZLE run check`, then `run build`.
+6. From the app's folder: `npm --prefix "<engine>" run check`, then `run build` (`<engine>` is this folder).
 
 Footage scenes are generic: anything the app can be driven to in a browser can be recorded.
 For a native app, swap the Playwright recorder for a screen capture and hand-write the cues.
@@ -219,6 +224,9 @@ for a headline face; the INVEST-IGATOR video is the worked example of the invers
 - `npm install`, then `npx playwright install chromium ffmpeg` once per machine. On a bare Linux machine,
   `npx playwright install-deps chromium` adds the system libraries Chromium needs.
 - Google Chrome installed is preferred for recording (`RECORD_BROWSER=chrome|chromium|/path` overrides).
+- On macOS without Playwright's own ffmpeg, `record` writes a small wrapper that runs Remotion's ffmpeg into
+  Playwright's browser folder (`~/Library/Caches/ms-playwright/`, or `$PLAYWRIGHT_BROWSERS_PATH`). Set
+  `PLAYWRIGHT_BROWSERS_PATH="<engine>/build/ms-playwright"` to keep it inside this folder.
 
 Setting up on a new machine: bump every `remotion` / `@remotion/*` entry in `package.json` to the
 current release before `npm install`; they must all match.
@@ -228,8 +236,11 @@ current release before `npm install`; they must all match.
 - Forcing `TTS_PROVIDER=elevenlabs` without a key makes `narrate` fail; leave it unset to auto-pick.
 - A long render can occasionally time out with "waiting for the page to render ... frame N"; it is
   not deterministic. Re-run `npm run render` (narration and footage are cached).
-- Remotion's bundled ffmpeg is a slim build without analysis filters (`volumedetect` etc.). Measure
-  loudness with a small script that reads the WAV samples instead.
+- Remotion's bundled ffmpeg is a slim build without `volumedetect`, but it has `loudnorm`: `render` uses it to
+  print the finished video's loudness, and to normalize it when the storyboard sets `loudness: { lufs: -16 }`.
+- A failed `stills` or `render` can leave Remotion's headless Chrome running, and the next run then times out
+  "trying to connect to the browser". Stop the leftover `chrome-headless-shell` processes under
+  `node_modules/.remotion/` and run it again.
 
 ## License and credits
 

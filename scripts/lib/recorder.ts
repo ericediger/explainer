@@ -15,29 +15,40 @@ import { getVideoMetadata } from '@remotion/renderer';
 import type { Cue, Footage, Rect } from '../../src/spec';
 import { root } from './env';
 
-const HELPERS = `(() => {
+/**
+ * The cursor, click ripple and spotlight the recorder draws over the page, plus `window.__rec` to drive them.
+ * `z` is spec.record.zoom: the page is drawn z times larger (CSS zoom on <html>), and getBoundingClientRect already
+ * returns those enlarged screen pixels, so the overlays opt out of the zoom (zoom: 1/z) and are sized z times larger
+ * instead: they look the same as on an unzoomed page and land where the rectangles say.
+ * `__name` is a stand-in for the helper tsx adds around named functions: an action's r.eval(() => { const f = () => …})
+ * arrives in the page calling __name(), which would otherwise be undefined there.
+ */
+const helpers = (z: number) => `(() => {
+  if (!window.__name) window.__name = (fn) => fn;
   if (window.__rec) return;
   const css = document.createElement('style');
   css.textContent = \`
-    #__cursor{position:fixed;left:0;top:0;width:28px;height:28px;z-index:2147483647;pointer-events:none;
-      transform:translate(-100px,-100px);transition:transform .5s cubic-bezier(.22,.8,.2,1);filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
-    #__ripple{position:fixed;left:0;top:0;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;
-      border:3px solid var(--accent,#2f6f4f);opacity:0;z-index:2147483646;pointer-events:none}
+    #__cursor{position:fixed;left:0;top:0;width:${28 * z}px;height:${28 * z}px;z-index:2147483647;pointer-events:none;
+      transform:translate(-100px,-100px);transition:transform .5s cubic-bezier(.22,.8,.2,1);filter:drop-shadow(0 ${2 * z}px ${3 * z}px rgba(0,0,0,.35))}
+    #__ripple{position:fixed;left:0;top:0;width:${44 * z}px;height:${44 * z}px;margin:${-22 * z}px 0 0 ${-22 * z}px;border-radius:50%;
+      border:${3 * z}px solid var(--accent,#2f6f4f);opacity:0;z-index:2147483646;pointer-events:none}
     #__ripple.go{animation:__rip .55s ease-out}
     @keyframes __rip{0%{opacity:.9;transform:scale(.25)}100%{opacity:0;transform:scale(1.6)}}
-    #__spot{position:fixed;left:0;top:0;width:0;height:0;border-radius:10px;box-shadow:0 0 0 200vmax rgba(8,10,14,.55);
-      outline:2px solid var(--accent,#2f6f4f);opacity:0;z-index:2147483640;pointer-events:none;
+    #__spot{position:fixed;left:0;top:0;width:0;height:0;border-radius:${10 * z}px;box-shadow:0 0 0 200vmax rgba(8,10,14,.55);
+      outline:${2 * z}px solid var(--accent,#2f6f4f);opacity:0;z-index:2147483640;pointer-events:none;
       transition:left .45s cubic-bezier(.2,.8,.2,1),top .45s cubic-bezier(.2,.8,.2,1),width .45s cubic-bezier(.2,.8,.2,1),height .45s cubic-bezier(.2,.8,.2,1),opacity .35s}
     #__spot.on{opacity:1}
+    ${z === 1 ? '' : `#__cursor,#__ripple,#__spot{zoom:${1 / z}}`}
   \`;
   document.head.appendChild(css);
   const cur = document.createElement('div'); cur.id = '__cursor';
-  cur.innerHTML = '<svg viewBox="0 0 28 28" width="28" height="28"><path d="M6 3 L6 23 L11.2 18.3 L14.6 25.5 L17.6 24.2 L14.3 17 L21.5 17 Z" fill="#111" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+  cur.innerHTML = '<svg viewBox="0 0 28 28" width="${28 * z}" height="${28 * z}"><path d="M6 3 L6 23 L11.2 18.3 L14.6 25.5 L17.6 24.2 L14.3 17 L21.5 17 Z" fill="#111" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>';
   const rip = document.createElement('div'); rip.id = '__ripple';
   const spot = document.createElement('div'); spot.id = '__spot';
   document.body.append(spot, rip, cur);
   window.__rec = {
-    move(x, y, ms) { cur.style.transitionDuration = ms + 'ms'; cur.style.transform = 'translate(' + (x - 6) + 'px,' + (y - 3) + 'px)'; },
+    // The arrow's tip is at (6, 3) of the 28-unit icon.
+    move(x, y, ms) { cur.style.transitionDuration = ms + 'ms'; cur.style.transform = 'translate(' + (x - ${6 * z}) + 'px,' + (y - ${3 * z}) + 'px)'; },
     ripple(x, y) { rip.style.left = x + 'px'; rip.style.top = y + 'px'; rip.classList.remove('go'); void rip.offsetWidth; rip.classList.add('go'); },
     spot(r, pad) {
       // A first spotlight appears in place and fades in; only moves between targets glide (else it swoops in from 0,0).
@@ -59,10 +70,14 @@ export type RecorderOptions = {
   baseUrl: string;
   outDir: string;
   viewport: { width: number; height: number };
-  /** Device pixel ratio; 2 gives crisp text when Remotion zooms in. */
+  /** Device pixel ratio. The clip is the viewport's size whatever this is; `zoom` is what adds pixels. */
   dpr: number;
   /** Element that must have rendered content before a scene starts (default `#app`). */
   readySelector?: string;
+  /** CSS zoom on the page's <html> (spec.record.zoom, default 1): the page is drawn this many times larger. */
+  zoom?: number;
+  /** Extra CSS for the page (spec.record.css), applied from its first script. */
+  css?: string;
 };
 
 export class SceneRecorder {
@@ -75,6 +90,11 @@ export class SceneRecorder {
   private mouse = { x: 0, y: 0 };
 
   constructor(private browser: Browser, private opts: RecorderOptions) {}
+
+  /** The page's CSS zoom: rectangles are in screen pixels, paddings and glide distances in the page's CSS pixels. */
+  private get z(): number {
+    return this.opts.zoom ?? 1;
+  }
 
   /** Open a fresh recording context, navigate, wait for the app to paint, inject helpers. */
   async start(id: string, hash: string): Promise<void> {
@@ -91,6 +111,27 @@ export class SceneRecorder {
       // and Playwright pads (not scales) frames smaller than `size`, so the video must match the viewport.
       recordVideo: { dir: path.join(this.opts.outDir, '.raw'), size: { width: viewport.width, height: viewport.height } },
     });
+    // Zoom and extra CSS before the page's own scripts run, so the app lays out once, already in its recorded form.
+    // An init script runs before the parser has created <html>, so it waits for that element. The extra CSS starts on
+    // <html> and moves to the end of <head> once the document has loaded, after the app's own styles.
+    if (this.z !== 1 || this.opts.css) {
+      await this.ctx.addInitScript({
+        content: `(() => {
+          const apply = () => {
+            const html = document.documentElement;
+            if (${this.z} !== 1) html.style.zoom = '${this.z}';
+            const css = ${JSON.stringify(this.opts.css ?? '')};
+            if (!css) return;
+            const s = document.createElement('style');
+            s.textContent = css;
+            html.appendChild(s);
+            document.addEventListener('DOMContentLoaded', () => document.head.appendChild(s));
+          };
+          if (document.documentElement) apply();
+          else new MutationObserver((_, o) => { if (document.documentElement) { o.disconnect(); apply(); } }).observe(document, { childList: true });
+        })();`,
+      });
+    }
     this.page = await this.ctx.newPage();
     await this.page.goto(this.opts.baseUrl + hash, { waitUntil: 'load' });
     await this.page.waitForFunction((sel) => {
@@ -98,7 +139,7 @@ export class SceneRecorder {
       return !!a && a.innerHTML.trim().length > 0;
     }, this.opts.readySelector ?? '#app');
     await this.page.evaluate(() => (document as unknown as { fonts?: { ready: Promise<unknown> } }).fonts?.ready);
-    await this.page.evaluate(HELPERS);
+    await this.page.evaluate(helpers(this.z));
     this.mouse = { x: Math.round(viewport.width * 0.62), y: Math.round(viewport.height * 0.58) };
     await this.page.evaluate(([x, y]) => (window as any).__rec.move(x, y, 0), [this.mouse.x, this.mouse.y]);
     await this.page.mouse.move(this.mouse.x, this.mouse.y);
@@ -127,13 +168,17 @@ export class SceneRecorder {
     await this.page.waitForTimeout(sec * 1000);
   }
 
+  /** The element's rectangle in screen pixels (CSS pixels × spec.record.zoom), as the camera and the mouse use them. */
   async rect(sel: string): Promise<Rect> {
     const r = (await this.page.evaluate((s) => (window as any).__rec.rect(s), sel)) as Rect | null;
     if (!r) throw new Error(`[${this.id}] no element matches ${sel}`);
     return r;
   }
 
-  /** Glide the cursor to an element (or point). `at` is the fractional anchor inside the element. */
+  /**
+   * Glide the cursor to an element (or a point in screen pixels). `at` is the fractional anchor inside the element.
+   * The glide takes 0.9 ms per CSS pixel of distance, between 0.32 and 0.9 s, so a zoomed page glides at the same pace.
+   */
   async moveTo(target: string | { x: number; y: number }, opts: { ms?: number; at?: [number, number] } = {}): Promise<{ x: number; y: number }> {
     let pt: { x: number; y: number };
     if (typeof target === 'string') {
@@ -141,7 +186,7 @@ export class SceneRecorder {
       const [fx, fy] = opts.at ?? [0.5, 0.5];
       pt = { x: r.x + r.w * fx, y: r.y + r.h * fy };
     } else pt = target;
-    const dist = Math.hypot(pt.x - this.mouse.x, pt.y - this.mouse.y);
+    const dist = Math.hypot(pt.x - this.mouse.x, pt.y - this.mouse.y) / this.z;
     const ms = opts.ms ?? Math.min(900, Math.max(320, dist * 0.9));
     await this.page.evaluate(([x, y, d]) => (window as any).__rec.move(x, y, d), [pt.x, pt.y, ms]);
     await this.page.mouse.move(pt.x, pt.y, { steps: 10 });
@@ -182,26 +227,39 @@ export class SceneRecorder {
     await this.page.waitForTimeout(220);
   }
 
-  /** Smooth-scroll an element to the middle of the viewport and wait for the scroll to settle. */
+  /**
+   * Smooth-scroll an element into view (to the middle by default) and wait until it has stopped moving: at least
+   * 0.4 s, at most 3 s. A long smooth scroll outlasts any fixed wait, and a zoom cue measured mid-scroll frames the
+   * wrong place.
+   */
   async scrollTo(sel: string, block: ScrollLogicalPosition = 'center'): Promise<void> {
     await this.page.evaluate(([s, b]) => document.querySelector(s as string)?.scrollIntoView({ block: b as ScrollLogicalPosition, behavior: 'smooth' }), [sel, block]);
-    await this.page.waitForTimeout(650);
+    const top = () => this.page.evaluate((s) => document.querySelector(s)?.getBoundingClientRect().top ?? null, sel);
+    await this.page.waitForTimeout(300);
+    const deadline = Date.now() + 2700;
+    let last = await top();
+    while (Date.now() < deadline) {
+      await this.page.waitForTimeout(100);
+      const now = await top();
+      if (now === last) break;
+      last = now;
+    }
   }
 
-  /** Dim everything except one element. */
+  /** Dim everything except one element; `pad` is in the page's CSS pixels. */
   async spot(sel: string, pad = 8): Promise<void> {
     const r = await this.rect(sel);
-    await this.page.evaluate(([rr, p]) => (window as any).__rec.spot(rr, p), [r, pad] as const);
+    await this.page.evaluate(([rr, p]) => (window as any).__rec.spot(rr, p), [r, pad * this.z] as const);
   }
 
   async unspot(): Promise<void> {
     await this.page.evaluate(() => (window as any).__rec.unspot());
   }
 
-  /** Record a camera cue: Remotion will zoom to this element's rectangle from now on. */
+  /** Record a camera cue: Remotion will zoom to this element's rectangle from now on. `pad` is in the page's CSS pixels. */
   async zoom(sel: string, pad = 24): Promise<void> {
     const r = await this.rect(sel);
-    this.cues.push({ t: round(this.now()), kind: 'zoom', rect: roundRect(r), pad });
+    this.cues.push({ t: round(this.now()), kind: 'zoom', rect: roundRect(r), pad: pad * this.z });
   }
 
   async zoomUnion(sels: string[], pad = 24): Promise<void> {
@@ -210,7 +268,7 @@ export class SceneRecorder {
     const y = Math.min(...rs.map((r) => r.y));
     const x2 = Math.max(...rs.map((r) => r.x + r.w));
     const y2 = Math.max(...rs.map((r) => r.y + r.h));
-    this.cues.push({ t: round(this.now()), kind: 'zoom', rect: roundRect({ x, y, w: x2 - x, h: y2 - y }), pad });
+    this.cues.push({ t: round(this.now()), kind: 'zoom', rect: roundRect({ x, y, w: x2 - x, h: y2 - y }), pad: pad * this.z });
   }
 
   zoomReset(): void {
@@ -277,8 +335,9 @@ function transcode(input: string, output: string): void {
 /**
  * Playwright records video through its own ffmpeg download, which is not offered for every macOS.
  * Stand in Remotion's bundled ffmpeg (same machine-compatible build we render with) at the path
- * Playwright expects, via a tiny wrapper that sets the library path. Idempotent. Elsewhere,
- * `npx playwright install ffmpeg` provides it.
+ * Playwright expects, via a tiny wrapper that sets the library path. That path is in Playwright's browser
+ * folder (~/Library/Caches/ms-playwright, or $PLAYWRIGHT_BROWSERS_PATH), outside the engine, so the wrapper is
+ * written only when it is missing or out of date. Elsewhere, `npx playwright install ffmpeg` provides it.
  */
 export function ensurePlaywrightFfmpeg(): void {
   if (process.platform !== 'darwin') return;
@@ -293,11 +352,10 @@ export function ensurePlaywrightFfmpeg(): void {
   const compositorDir = path.dirname(require.resolve(`@remotion/compositor-darwin-${process.arch}/package.json`));
   const ffmpeg = path.join(compositorDir, 'ffmpeg');
   if (!fs.existsSync(ffmpeg)) throw new Error(`Playwright needs ffmpeg at ${target} and Remotion's ffmpeg was not found at ${ffmpeg}`);
-  fs.mkdirSync(path.dirname(target), { recursive: true });
   // Remotion's ffmpeg is a slim build without the `pad` filter Playwright uses; frames from a fixed
   // viewport are already the right size, so swap pad=W:H:... for scale=W:H.
   const script = `#!/usr/bin/env python3
-# ${MARK}: written by EXPLAINER/scripts/lib/recorder.ts so Playwright can capture video with Remotion's ffmpeg.
+# ${MARK}: written by the sizzle engine's scripts/lib/recorder.ts so Playwright can capture video with Remotion's ffmpeg.
 import os, re, sys
 d = ${JSON.stringify(compositorDir)}
 args = sys.argv[1:]
@@ -309,8 +367,11 @@ os.environ['DYLD_LIBRARY_PATH'] = d
 os.chdir(d)
 os.execv(os.path.join(d, 'ffmpeg'), ['ffmpeg'] + args)
 `;
+  if (fs.existsSync(target) && fs.readFileSync(target, 'utf8') === script) return; // already bridged
+  fs.mkdirSync(path.dirname(target), { recursive: true });
   fs.writeFileSync(target, script, { mode: 0o755 });
   console.log(`Bridged Playwright's ffmpeg to Remotion's build → ${target}`);
+  if (!process.env.PLAYWRIGHT_BROWSERS_PATH) console.log('  (outside the engine; set PLAYWRIGHT_BROWSERS_PATH to put it elsewhere)');
 }
 
 /** The first port from `from` up that nothing is listening on, so two recordings at once never share a server. */

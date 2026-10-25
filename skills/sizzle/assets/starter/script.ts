@@ -42,10 +42,12 @@ export const spec: VideoSpec = {
     {
       id: 'intro',
       kind: 'animated',
-      component: 'Title',
+      // The problem on the first sentence, the app's name on the second (scenes/ColdOpen.tsx).
+      // To lead with the payoff instead, use 'Title': the name on the first sentence, the tagline on the second.
+      component: 'ColdOpen',
       // Empty title: no lower third over the opening card.
       title: '',
-      narration: 'My App does one thing for one kind of person. Here is how it works.',
+      narration: 'Name the problem the viewer has today, in one sentence. My App fixes it: say how in one more.',
       leadInSec: 0.8,
     },
     {
