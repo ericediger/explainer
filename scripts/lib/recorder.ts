@@ -71,6 +71,7 @@ export class SceneRecorder {
   private id = '';
   private readyWall = 0;
   private cues: Cue[] = [];
+  private late: { t: number; by: number }[] = [];
   private mouse = { x: 0, y: 0 };
 
   constructor(private browser: Browser, private opts: RecorderOptions) {}
@@ -79,6 +80,7 @@ export class SceneRecorder {
   async start(id: string, hash: string): Promise<void> {
     this.id = id;
     this.cues = [];
+    this.late = [];
     const { viewport, dpr } = this.opts;
     this.ctx = await this.browser.newContext({
       viewport,
@@ -109,10 +111,16 @@ export class SceneRecorder {
     return (Date.now() - this.readyWall) / 1000;
   }
 
-  /** Wait until scene time t. */
+  /** Wait until scene time t. Arriving more than 0.25 s after t is noted, so the record step can report it. */
   async until(t: number): Promise<void> {
     const ms = t * 1000 - (Date.now() - this.readyWall);
     if (ms > 0) await this.page.waitForTimeout(ms);
+    else if (ms < -250) this.late.push({ t, by: round(-ms / 1000) });
+  }
+
+  /** The current scene's beats that arrived late: each `until(t)` reached `by` seconds after t. */
+  get lateBeats(): { t: number; by: number }[] {
+    return this.late;
   }
 
   async wait(sec: number): Promise<void> {
@@ -151,10 +159,11 @@ export class SceneRecorder {
     await this.page.waitForTimeout(220);
   }
 
-  /** Click into a field and type like a person. */
-  async type(sel: string, text: string, opts: { cps?: number } = {}): Promise<void> {
+  /** Click into a field and type like a person. Typing adds to what is there; `replace` selects it first so the text replaces it. */
+  async type(sel: string, text: string, opts: { cps?: number; replace?: boolean } = {}): Promise<void> {
     const cps = opts.cps ?? 12;
     await this.click(sel);
+    if (opts.replace) await this.page.keyboard.press('ControlOrMeta+A');
     for (const ch of text) {
       await this.page.keyboard.type(ch);
       await this.page.waitForTimeout((1000 / cps) * (0.65 + Math.random() * 0.7));
@@ -163,6 +172,14 @@ export class SceneRecorder {
 
   async press(key: string): Promise<void> {
     await this.page.keyboard.press(key);
+  }
+
+  /** Pick an option of a <select> by value or label. A native dropdown list never shows in the footage, so this clicks (ripple) and sets it. */
+  async select(sel: string, option: string): Promise<void> {
+    const p = await this.moveTo(sel);
+    await this.page.evaluate(([x, y]) => (window as any).__rec.ripple(x, y), [p.x, p.y]);
+    await this.page.locator(sel).selectOption(option);
+    await this.page.waitForTimeout(220);
   }
 
   /** Smooth-scroll an element to the middle of the viewport and wait for the scroll to settle. */

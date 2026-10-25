@@ -47,7 +47,8 @@ export const actions: Record<string, SceneAction> = {
 | `r.now()` | Seconds since the page was ready. |
 | `await r.moveTo(target, { ms?, at? })` | Glides the visible cursor to a selector or a `{x, y}` point. `at: [fx, fy]` is the anchor inside the element (default the centre). |
 | `await r.click(target, { at? })` | Moves there, shows a ripple and clicks. |
-| `await r.type(sel, text, { cps? })` | Clicks into a field and types like a person (12 characters a second by default). |
+| `await r.type(sel, text, { cps?, replace? })` | Clicks into a field and types like a person (12 characters a second by default). It adds to what is already there; `replace: true` selects the old text first so the new text replaces it, which you want for pre-filled fields. |
+| `await r.select(sel, option)` | Picks a `<select>` option by value or label. A native dropdown list never appears in the footage, so this shows a click on the field and the new value. |
 | `await r.press(key)` | A key press, e.g. `'Enter'` or `'Escape'`. |
 | `await r.scrollTo(sel, block?)` | Smooth-scrolls the element into view (`'center'` by default) and waits for it to settle. |
 | `await r.spot(sel, pad?)` | Dims everything except the element. |
@@ -65,6 +66,8 @@ A zoom cue fits the padded rectangle into the frame, centres it and eases there 
 
 - A region about two thirds of the viewport (around 1000 × 560 on a 1600 × 900 page) gives roughly 1.5×, which reads well.
 - Cues are measured when you call them. Call `zoom` after a scroll or layout change has settled, not before.
+- Zoom to elements whose box hugs their content. Block elements (a heading, a table, a section) usually span the page's full width, so a zoom or `zoomUnion` that includes one barely zooms. Point at a cell, a card or an inline element instead. You can also make a tighter box: give a wrapper an id, or measure a rectangle with `r.rect`.
+- A wide, short target is fitted by its width, which leaves the top and bottom of the frame empty. Include some of what is above or below it.
 - One move per idea, with a held frame of at least 1.5 s between moves.
 - Don't zoom and spotlight different things at the same time.
 - Reset before the scene ends, so the next scene starts wide.
@@ -72,7 +75,15 @@ A zoom cue fits the padded rectangle into the frame, centres it and eases there 
 ## Pacing
 
 - Hang each beat on the words it illustrates: `T(narr, 0.25)`, `T(narr, 0.5)` and so on.
-- Typing and cursor glides take real time. Start them early enough to finish under the sentence that describes them.
+- Moves take real time, so start them early enough to finish under the sentence that describes them. What each call costs:
+  - `moveTo`: 0.4–1 s, depending on distance (`ms` overrides it);
+  - `click`: a `moveTo` plus 0.3 s;
+  - `type`: a `click` plus about 1/`cps` s per character (12 cps means 1 s for every 12 characters);
+  - `scrollTo`: 0.65 s.
+
+  Filling four fields of a form takes 5–6 s.
+- `record` warns when an `until(t)` is reached more than 0.25 s after `t`: `⚠ 2 beats late, worst 2.0s after t=8.4`. Start the moves before that beat earlier, or give the scene more words.
+- Its per-scene line, `target 11.6s … 11.9s`, gives the length the clip needs and the length it got. The second number includes the page-load time before the scene starts, so a bit over the target is normal.
 - End the action by about `T(narr, 1.0) + 0.3`. The video shows each clip for `leadIn + narration + tail` seconds, so anything after that never appears. The recorder holds each clip 0.8 s longer than that, as a margin.
 
 ## State and data

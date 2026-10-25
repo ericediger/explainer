@@ -166,7 +166,7 @@ Everything app-specific lives in one folder inside the app:
    the app; `style` picks a variant of each shared kit piece (see "Style presets" below);
    `voice.elevenlabs` picks the narrator; `music` adds a bed; `poster.atSec` picks the still.
 4. Write `record.ts`: for each footage scene, drive the page with the `SceneRecorder` (`until`,
-   `moveTo`, `click`, `type`, `spot`, `zoom`, `zoomUnion`, `eval`) paced to the narration length.
+   `moveTo`, `click`, `type`, `select`, `spot`, `zoom`, `zoomUnion`, `eval`) paced to the narration length.
 5. Rewrite or replace the components in `scenes/` and register them in `index.ts`. They import the kit as
    `@explainer/src/kit/…` and resolve `react` and `remotion` from this folder, so the app needs no packages.
    If the app has its own `tsconfig.json` or linter that covers the whole repo, exclude `explainer/` there.

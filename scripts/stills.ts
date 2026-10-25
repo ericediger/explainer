@@ -2,7 +2,7 @@
  * Render one PNG per scene (at its midpoint) for a quick visual check.
  *   npm run stills                 → build/<id>/stills/<nn>-<scene>.png
  *   npm run stills -- home polish  → only those scenes
- *   npm run stills -- --late       → at 78% through each scene instead of the midpoint
+ *   npm run stills -- --late       → at 78% through each scene instead of the midpoint, as <nn>-<scene>-late.png
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -19,12 +19,13 @@ const cues = readJson<CuesFile>(path.join(project.publicDir, 'footage', 'cues.js
 const tl = buildTimeline(spec, manifest, cues);
 const dir = path.join(project.build, 'stills');
 fs.mkdirSync(dir, { recursive: true });
-const at = process.argv.includes('--late') ? 0.78 : 0.5;
+const late = process.argv.includes('--late');
+const at = late ? 0.78 : 0.5;
 const only = process.argv.slice(2).filter((a) => !a.startsWith('-'));
 tl.scenes.forEach((s, i) => {
   if (only.length && !only.includes(s.spec.id)) return;
   const frame = s.from + Math.floor(s.durationInFrames * at);
-  const out = path.join(dir, `${String(i + 1).padStart(2, '0')}-${s.spec.id}.png`);
+  const out = path.join(dir, `${String(i + 1).padStart(2, '0')}-${s.spec.id}${late ? '-late' : ''}.png`);
   remotion(project, ['still', 'src/index.ts', spec.id, out, `--frame=${frame}`, '--log=error']);
   console.log(`✓ ${show(out)} (frame ${frame})`);
 });

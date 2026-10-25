@@ -93,6 +93,11 @@ async function main(): Promise<void> {
       result.generatedAt = new Date().toISOString();
       writeJson(cuesPath, result);
       console.log(`${footage.durationSec.toFixed(1)}s, ${footage.cues.length} cues → ${footage.file}`);
+      const late = rec.lateBeats;
+      if (late.length) {
+        const worst = late.reduce((a, b) => (b.by > a.by ? b : a));
+        console.log(`  ⚠ ${late.length} beat${late.length === 1 ? '' : 's'} late, worst ${worst.by.toFixed(1)}s after t=${worst.t}: start the moves before it earlier`);
+      }
     }
   } finally {
     await browser.close();

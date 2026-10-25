@@ -100,7 +100,9 @@ Leave music out when the user doesn't want it. Ask, rather than adding a track n
 
 ## Poster (`poster.atSec`)
 
-Pick a moment when a footage scene shows the app clearly: text settled, not mid-zoom, no spotlight half-faded. Read the scene start times off the stills (each still is at its scene's midpoint), then check the result with `run poster`.
+Pick a moment when a footage scene shows the app clearly: text settled, not mid-zoom, and no spotlight. The poster darkens the frame by about a quarter and puts a large play badge in the dead centre, so a spotlight frame comes out too dark. Choose a moment whose key content sits away from the centre.
+
+Each still is taken at its scene's midpoint; `--late` at 78%. Use them to find scene times, then look at the result of `run poster`.
 
 ## Writing the narration
 

@@ -55,6 +55,7 @@ The engine picks the first available, in this order: own recordings, ElevenLabs 
 - **Keys:** they go in `<engine>/.env` only, never in the app's repo. If the user pastes a key into the chat, write it to that file and don't repeat it.
 - **No voice available:** off a Mac, with no key and no recordings, there is nothing to narrate with. Ask for a key or recordings before going on.
 - **Voice ids:** never copy an ElevenLabs voice id from an example or another project. Cloned voices are private to the account that made them, so someone else's id fails with your key. Set `voice.elevenlabs` only to an id the user gives you.
+- **Own recordings:** they come after the narration is signed off (step 4) and before `narrate`. Give the user the exact lines to read, one file per scene. A line changed later means re-recording that scene's file.
 
 ## 3. Inspect the app
 
@@ -79,7 +80,7 @@ cp -r <skill-dir>/assets/starter <app>/explainer
 
 Then edit `<app>/explainer/script.ts`. Every field is described in [references/storyboard.md](references/storyboard.md).
 
-- **Shape:** an animated opener, then 3–6 footage scenes along the happy path (one idea each), then an animated outro. Aim for 60–120 seconds. The voice runs at about 2.75 words a second, so that is 160–330 words in total.
+- **Shape:** an animated opener, then 3–6 footage scenes along the happy path (one idea each), then an animated outro. Aim for 60–120 seconds. With each scene's lead-in and hold counted, the finished video runs about 2 words a second, so that is roughly 120–240 words in total.
 - **Narration:** 1–3 short sentences per scene, each under about 15 words, so a caption fits on one or two lines. Say what the viewer is seeing, in the app's own words. No generic SaaS phrasing ("streamline your workflow" is banned).
 - **The hook:** the opener's first sentence decides whether anyone keeps watching. It should name the problem or the payoff, not the tech stack.
 - **Captions** show `narration` word for word. Put pronunciation fixes in `spoken` (for example "Type Script").
@@ -109,8 +110,8 @@ Run these in order from `<app>`:
 
 1. `npm --prefix "<engine>" run check`: a type-check. Fix every error before anything slow.
 2. `npm --prefix "<engine>" run narrate`: one clip per scene, with measured lengths. Only changed lines are regenerated.
-3. `npm --prefix "<engine>" run record`. To redo one scene: `run record -- <scene-id>`.
-4. `npm --prefix "<engine>" run stills`, then `run stills -- --late`. Look at every PNG in `<engine>/build/<id>/stills/`. Check for:
+3. `npm --prefix "<engine>" run record`. To redo one scene: `run record -- <scene-id>`. If it reports beats running late, the moves before them take longer than the words allow. Start those moves earlier in `record.ts` and re-record the scene.
+4. `npm --prefix "<engine>" run stills` writes `<nn>-<scene>.png` at each scene's midpoint. `run stills -- --late` writes `<nn>-<scene>-late.png` at 78% through. Put scene ids after `--` to render only those scenes. Look at every PNG in `<engine>/build/<id>/stills/`. Check for:
    - text that overflows or collides with the captions or the scene title;
    - a zoom that lands on the wrong thing;
    - footage showing "not recorded yet";
@@ -124,7 +125,7 @@ After an edit, re-run only what the change touches:
 
 | Changed | Re-run |
 |---|---|
-| A scene's narration or `spoken` | narrate, record (footage follows the narration's length), render, poster |
+| A scene's narration or `spoken` | With own recordings, re-record that scene's file first. Then narrate, record (footage follows the narration's length), render, poster |
 | `record.ts` | record (`-- <scene-id>`), render, poster |
 | `scenes/`, `theme`, `style`, titles | stills to check, then render, poster |
 | `music` | render |
@@ -137,7 +138,7 @@ The engine copies the results into the app:
 - `<app>/media/<id>-explainer.mp4`: the video.
 - `<app>/media/explainer-poster.jpg`: the poster, with a play badge.
 
-Commit `<app>/explainer/` and `<app>/media/`. The engine's `build/<id>/` is a cache and never goes in git.
+If the app is a git repo, commit `<app>/explainer/` and `<app>/media/` (ask first if the user hasn't asked you to commit). If it isn't, tell the user these two folders are the ones to keep. The engine's `build/<id>/` is a cache and never goes in git.
 
 If the app has a tsconfig, linter or test runner that covers the whole repo, exclude `explainer/` from it. Its imports (`@explainer/…`, `remotion`) resolve only inside the engine.
 
