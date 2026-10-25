@@ -11,6 +11,37 @@ cd "../FLIGHT DECK"
 npm --prefix ../EXPLAINER run build   # narrate → record → render → poster   ⇒ media/<id>-explainer.mp4, media/explainer-poster.jpg
 ```
 
+## Or ask your coding agent: `/explainer`
+
+This repo is also a Claude Code plugin with one skill, `/explainer`. In any web app's folder, ask your agent to
+"make an explainer video of this app". It then:
+- reads the app;
+- writes `<app>/explainer/`: the storyboard, the recorder's moves and the animated scenes;
+- shows you the narration and then the stills before rendering;
+- delivers the video and poster to `<app>/media/`.
+
+It finds this engine next to your apps or at `$EXPLAINER_HOME`; if there is none, it offers to clone one to `~/.explainer`.
+
+```bash
+/plugin install explainer --marketplace ericediger/explainer   # Claude Code 2.1.275 or later
+
+/plugin marketplace add ericediger/explainer                    # older Claude Code
+/plugin install explainer@explainer
+
+npx skills add https://github.com/ericediger/explainer --skill explainer   # Codex, Cursor, Copilot, Gemini CLI, opencode …
+```
+
+The skill only holds the instructions; the engine still runs on your machine. That needs:
+- Node 20+ and python3, on macOS or Linux;
+- a few hundred MB for packages and browsers;
+- a narrator: an ElevenLabs or OpenAI key in the engine's `.env`, the Mac voice, or your own recordings.
+
+Sessions opened in this repo pick the skill up from `.claude/skills/` and `.agents/skills/` without installing it.
+The skill's source is [`skills/explainer/`](skills/explainer/); its starter project is
+[`skills/explainer/assets/starter/`](skills/explainer/assets/starter/).
+
+## The engine
+
 This folder is the engine. It lives at `_LOCAL APP DEVELOPMENT/EXPLAINER`, next to the apps it films, and
 holds nothing that belongs to them. Each video's source lives with its app and is committed to the app's repo:
 
@@ -121,8 +152,9 @@ Everything app-specific lives in one folder inside the app:
 └── demo/          optional: a stage page for the recorder to film
 ```
 
-1. Copy the closest existing project into `<app>/explainer/` (`npm run projects` lists them; week-prep's is the
-   web-app example) and set `id`, `name`, `repoUrl`, `demoUrl`, and `record`: a folder + page to serve
+1. Copy the starter, [`skills/explainer/assets/starter/`](skills/explainer/assets/starter/), into `<app>/explainer/`.
+   Or copy the closest existing project instead (`npm run projects` lists them; week-prep's is the web-app
+   example). Then set `id`, `name`, `repoUrl`, `demoUrl`, and `record`: a folder + page to serve
    (`appDir` is relative to the app folder, so `'.'` for a `demo.html` at the root), or `url` of a dev server
    you already started, plus the viewport, and `readySelector` if the app's root element is not `#app`.
    For a narrow UI such as a browser side panel, lay the page out at 1600×900 and draw it with CSS `zoom` into
@@ -179,8 +211,9 @@ for a headline face; the INVEST-IGATOR video is the worked example of the invers
 
 ## Requirements
 
-- Node 20+.
-- `npm install`, then `npx playwright install chromium ffmpeg` once per machine.
+- Node 20+ and python3 (it serves static apps to the recorder). macOS or Linux; Windows is untested.
+- `npm install`, then `npx playwright install chromium ffmpeg` once per machine. On a bare Linux machine,
+  `npx playwright install-deps chromium` adds the system libraries Chromium needs.
 - Google Chrome installed is preferred for recording (`RECORD_BROWSER=chrome|chromium|/path` overrides).
 
 Setting up on a new machine: bump every `remotion` / `@remotion/*` entry in `package.json` to the
@@ -193,3 +226,14 @@ current release before `npm install`; they must all match.
   not deterministic. Re-run `npm run render` (narration and footage are cached).
 - Remotion's bundled ffmpeg is a slim build without analysis filters (`volumedetect` etc.). Measure
   loudness with a small script that reads the WAV samples instead.
+
+## License and credits
+
+MIT, see [LICENSE](LICENSE). Videos are rendered with [Remotion](https://www.remotion.dev), which has its own
+license. It is free for individuals, companies of up to three people and non-profits; larger companies need a
+[company license](https://www.remotion.dev/license).
+
+- **The music bed** in this repo's own video (`explainer/public/music/product-groove.mp3`) was generated with
+  ElevenLabs by the author. You're welcome to use it under your own explainers.
+- **The narrator** of that video is the author's own voice, cloned in ElevenLabs. A cloned voice id only works
+  on the account that made it, so other people's videos use their own ElevenLabs voice (or the default one).

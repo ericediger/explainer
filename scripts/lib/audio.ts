@@ -1,7 +1,9 @@
 import fs from 'node:fs';
+import path from 'node:path';
 import { execFileSync } from 'node:child_process';
+import { root } from './env';
 
-/** Duration of a wav/mp3 file in seconds. Uses macOS afinfo, falls back to parsing the WAV header. */
+/** Duration of a wav/mp3 file in seconds. Uses macOS afinfo, then Remotion's bundled ffprobe, then the WAV header. */
 export function audioDurationSec(file: string): number {
   try {
     const out = execFileSync('afinfo', [file], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
@@ -10,8 +12,19 @@ export function audioDurationSec(file: string): number {
   } catch {
     /* not macOS or afinfo missing */
   }
+  try {
+    const bin = path.join(root, 'node_modules', '.bin', 'remotion');
+    const out = execFileSync(bin, ['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', file], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    });
+    const sec = parseFloat(out.trim());
+    if (sec > 0) return sec;
+  } catch {
+    /* ffprobe could not read it */
+  }
   if (file.toLowerCase().endsWith('.wav')) return wavDurationSec(file);
-  throw new Error(`Cannot measure duration of ${file} (install afinfo-compatible tooling or use wav output)`);
+  throw new Error(`Cannot measure duration of ${file} (neither afinfo nor Remotion's ffprobe could read it)`);
 }
 
 function wavDurationSec(file: string): number {

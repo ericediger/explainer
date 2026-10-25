@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "description": "Automated explainer-video pipeline: Playwright records the app, macOS/ElevenLabs narrate, Remotion composes and renders.",
+  "license": "MIT",
+  "repository": "github:ericediger/explainer",
   "scripts": {
     "studio": "tsx scripts/studio.ts",
     "narrate": "tsx scripts/narrate.ts",

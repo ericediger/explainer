@@ -258,11 +258,13 @@ function transcode(input: string, output: string): void {
 }
 
 /**
- * Playwright records video through its own ffmpeg download, which is not offered for this macOS.
+ * Playwright records video through its own ffmpeg download, which is not offered for every macOS.
  * Stand in Remotion's bundled ffmpeg (same machine-compatible build we render with) at the path
- * Playwright expects, via a tiny wrapper that sets the library path. Idempotent.
+ * Playwright expects, via a tiny wrapper that sets the library path. Idempotent. Elsewhere,
+ * `npx playwright install ffmpeg` provides it.
  */
 export function ensurePlaywrightFfmpeg(): void {
+  if (process.platform !== 'darwin') return;
   const pwCore = path.dirname(require.resolve('playwright-core/package.json'));
   const browsers = JSON.parse(fs.readFileSync(path.join(pwCore, 'browsers.json'), 'utf8')) as { browsers: { name: string; revision: string }[] };
   const rev = browsers.browsers.find((b) => b.name === 'ffmpeg')?.revision;
@@ -271,7 +273,7 @@ export function ensurePlaywrightFfmpeg(): void {
   const target = path.join(cache, `ffmpeg-${rev}`, 'ffmpeg-mac');
   const MARK = 'EXPLAINER-ffmpeg-bridge';
   if (fs.existsSync(target) && !fs.readFileSync(target, 'latin1').slice(0, 400).includes(MARK)) return; // a real Playwright ffmpeg
-  const compositorDir = path.dirname(require.resolve('@remotion/compositor-darwin-x64/package.json'));
+  const compositorDir = path.dirname(require.resolve(`@remotion/compositor-darwin-${process.arch}/package.json`));
   const ffmpeg = path.join(compositorDir, 'ffmpeg');
   if (!fs.existsSync(ffmpeg)) throw new Error(`Playwright needs ffmpeg at ${target} and Remotion's ffmpeg was not found at ${ffmpeg}`);
   fs.mkdirSync(path.dirname(target), { recursive: true });

@@ -1,0 +1,15 @@
+{
+  "name": "explainer",
+  "description": "Automated explainer videos for your web apps: real footage, narration, captions and a README poster, from one storyboard file.",
+  "owner": {
+    "name": "Eric Ediger",
+    "url": "https://github.com/ericediger"
+  },
+  "plugins": [
+    {
+      "name": "explainer",
+      "source": "./",
+      "description": "Make a narrated, captioned explainer video of the web app in the current project."
+    }
+  ]
+}
