@@ -9,7 +9,7 @@
 
 ## Installing
 
-`node <skill-dir>/scripts/engine.mjs --install` does the following:
+`node "<skill-dir>/scripts/engine.mjs" --install` does the following:
 
 1. Clones `https://github.com/ericediger/sizzle` to `$SIZZLE_HOME`, or `~/.sizzle` when that isn't set.
 2. Runs `npm ci` there.
@@ -21,7 +21,7 @@ To do it by hand, run the same four steps.
 On a bare Linux machine, Chromium may also need system libraries. Running `npx playwright install-deps chromium` (with sudo) in the engine installs them. Ask the user before running anything with sudo.
 
 For an engine that is already there, such as a clone the user made themselves:
-- `node <skill-dir>/scripts/engine.mjs --setup` runs steps 2–4 in it.
+- `node "<skill-dir>/scripts/engine.mjs" --setup` runs steps 2–4 in it.
 - `--update` first pulls the latest engine, then does the same.
 
 ## Where things live

@@ -20,13 +20,13 @@ The video's source is plain TypeScript in `<app>/explainer/` and is committed wi
 From `<app>`, run:
 
 ```bash
-node <skill-dir>/scripts/engine.mjs
+node "<skill-dir>/scripts/engine.mjs"
 ```
 
 It prints the engine folder. If it finds none, tell the user what installing does and ask before running it: it clones github.com/ericediger/sizzle to `~/.sizzle` and installs its packages and browsers (several hundred MB, a few minutes). On a yes:
 
 ```bash
-node <skill-dir>/scripts/engine.mjs --install              # or --dir=<path> for a location they choose
+node "<skill-dir>/scripts/engine.mjs" --install            # or --dir="<path>" for a location they choose
 ```
 
 If they choose a location, tell them to set `SIZZLE_HOME` to it so later runs find it. When it says packages aren't installed, run it again with `--setup`.
@@ -37,7 +37,7 @@ Every engine command in this skill runs **from `<app>`**, in this form:
 npm --prefix "<engine>" run <script>
 ```
 
-The engine finds `<app>/explainer/` from the folder the command is started in. Don't `cd` into the engine to run them.
+The engine finds `<app>/explainer/` from the folder the command is started in. Don't `cd` into the engine to run them. App and engine paths often contain spaces, so always quote them.
 
 ## 2. Settle the voice (ask once)
 
@@ -76,7 +76,7 @@ Then answer these before planning. What is it, in one sentence? Who is it for? W
 If `<app>/explainer/` doesn't exist yet, copy the starter:
 
 ```bash
-cp -r <skill-dir>/assets/starter <app>/explainer
+cp -r "<skill-dir>/assets/starter" "<app>/explainer"
 ```
 
 Then edit `<app>/explainer/script.ts`. Every field is described in [references/storyboard.md](references/storyboard.md).
