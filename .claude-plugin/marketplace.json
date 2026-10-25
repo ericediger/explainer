@@ -1,5 +1,5 @@
 {
-  "name": "explainer",
+  "name": "sizzle",
   "description": "Automated explainer videos for your web apps: real footage, narration, captions and a README poster, from one storyboard file.",
   "owner": {
     "name": "Eric Ediger",
@@ -7,7 +7,7 @@
   },
   "plugins": [
     {
-      "name": "explainer",
+      "name": "sizzle",
       "source": "./",
       "description": "Make a narrated, captioned explainer video of the web app in the current project."
     }

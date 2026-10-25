@@ -11,7 +11,7 @@
 
 `node <skill-dir>/scripts/engine.mjs --install` does the following:
 
-1. Clones `https://github.com/ericediger/explainer` to `$EXPLAINER_HOME`, or `~/.explainer` when that isn't set.
+1. Clones `https://github.com/ericediger/sizzle` to `$SIZZLE_HOME`, or `~/.sizzle` when that isn't set.
 2. Runs `npm ci` there.
 3. Runs `npx playwright install chromium ffmpeg`: the browser and encoder the recorder uses.
 4. Runs `npx remotion browser ensure`: the headless Chrome that renders.

@@ -1,9 +1,9 @@
 ---
-name: explainer
-description: Make a narrated, captioned explainer video of the web app in the current project. Real footage of the running app is recorded with Playwright (visible cursor, clicks, spotlight, computed camera zooms). Narration comes from ElevenLabs, OpenAI, the macOS voice or the user's own recordings. Remotion adds animated title and outro scenes in the app's colours, then renders the video and a README poster. The video is code in <app>/explainer/, so an edited line and a re-run make a new video. Use when someone says "/explainer", "make an explainer video", "make a demo video of this app", "record a walkthrough", or asks to update or re-render an existing explainer/ video.
+name: sizzle
+description: Make a narrated, captioned explainer video of the web app in the current project. Real footage of the running app is recorded with Playwright (visible cursor, clicks, spotlight, computed camera zooms). Narration comes from ElevenLabs, OpenAI, the macOS voice or the user's own recordings. Remotion adds animated title and outro scenes in the app's colours, then renders the video and a README poster. The video is code in <app>/explainer/, so an edited line and a re-run make a new video. Use when someone says "/sizzle", "make an explainer video", "make a demo video of this app", "make a sizzle reel", "record a walkthrough", or asks to update or re-render an existing explainer/ video.
 ---
 
-# /explainer
+# /sizzle
 
 Turn the web app in this project into a one-to-two-minute explainer video: real footage of the running app, a narrator, captions, animated scenes in the app's colours, and a poster image for the README.
 
@@ -11,7 +11,7 @@ The video's source is plain TypeScript in `<app>/explainer/` and is committed wi
 
 - `<skill-dir>`: the folder holding this file. Claude Code prints it as "Base directory for this skill"; elsewhere it is wherever the skill was installed. Don't guess it.
 - `<app>`: the root of the project the video is about.
-- `<engine>`: the EXPLAINER engine folder from step 1.
+- `<engine>`: the SIZZLE engine folder from step 1.
 
 **New video or an edit?** If `<app>/explainer/script.ts` already exists, this is an edit. Read `script.ts`, `record.ts` and `scenes/`, change only what was asked, then re-run what the change touches (the table in step 7). Otherwise do steps 1 to 8.
 
@@ -23,13 +23,13 @@ From `<app>`, run:
 node <skill-dir>/scripts/engine.mjs
 ```
 
-It prints the engine folder. If it finds none, tell the user what installing does and ask before running it: it clones github.com/ericediger/explainer to `~/.explainer` and installs its packages and browsers (several hundred MB, a few minutes). On a yes:
+It prints the engine folder. If it finds none, tell the user what installing does and ask before running it: it clones github.com/ericediger/sizzle to `~/.sizzle` and installs its packages and browsers (several hundred MB, a few minutes). On a yes:
 
 ```bash
 node <skill-dir>/scripts/engine.mjs --install              # or --dir=<path> for a location they choose
 ```
 
-If they choose a location, tell them to set `EXPLAINER_HOME` to it so later runs find it. When it says packages aren't installed, run it again with `--setup`.
+If they choose a location, tell them to set `SIZZLE_HOME` to it so later runs find it. When it says packages aren't installed, run it again with `--setup`.
 
 Every engine command in this skill runs **from `<app>`**, in this form:
 
@@ -54,7 +54,8 @@ The engine picks the first available, in this order: own recordings, ElevenLabs 
 
 - **Keys:** they go in `<engine>/.env` only, never in the app's repo. If the user pastes a key into the chat, write it to that file and don't repeat it.
 - **No voice available:** off a Mac, with no key and no recordings, there is nothing to narrate with. Ask for a key or recordings before going on.
-- **Voice ids:** never copy an ElevenLabs voice id from an example or another project. Cloned voices are private to the account that made them, so someone else's id fails with your key. Set `voice.elevenlabs` only to an id the user gives you.
+- **Default voice:** without a voice id set, the engine narrates with its author's voice, which is shared in the ElevenLabs Voice Library. If `narrate` fails on it with a voice error, the user's account can't reach it yet. They can add it from the Voice Library, or set `ELEVENLABS_VOICE_ID` to one of their own voices.
+- **Voice ids:** never copy an ElevenLabs voice id from another project. Most cloned voices are private to the account that made them. Set `voice.elevenlabs` only to an id the user gives you.
 - **Own recordings:** they come after the narration is signed off (step 4) and before `narrate`. Give the user the exact lines to read, one file per scene. A line changed later means re-recording that scene's file.
 
 ## 3. Inspect the app

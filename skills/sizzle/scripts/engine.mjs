@@ -1,33 +1,35 @@
 #!/usr/bin/env node
 /**
- * Find (or install) the EXPLAINER engine for the /explainer skill.
+ * Find (or install) the SIZZLE engine for the /sizzle skill.
  *
  *   node engine.mjs                 print the engine folder; exit 1 with where it looked when there is none
- *   node engine.mjs --install       clone it to $EXPLAINER_HOME or ~/.explainer, install packages and browsers
+ *   node engine.mjs --install       clone it to $SIZZLE_HOME or ~/.sizzle, install packages and browsers
  *   node engine.mjs --install --dir=<path>   ... into <path> instead
  *   node engine.mjs --setup         install packages and browsers in the engine that was found
  *   node engine.mjs --update        pull the latest engine, then the same as --setup
  *
- * Looks in order: $EXPLAINER_HOME, an EXPLAINER folder next to the current folder or any folder above it
- * (the engine's own layout: it sits beside the apps it films), the current folder if it is inside the engine,
- * then ~/.explainer. No dependencies: runs on the Node the engine needs anyway.
+ * Looks in order: $SIZZLE_HOME, a SIZZLE, sizzle or EXPLAINER folder next to the current folder or any folder
+ * above it (the engine's own layout: it sits beside the apps it films), the current folder if it is inside the
+ * engine, then ~/.sizzle. No dependencies: runs on the Node the engine needs anyway.
  */
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 
-const REPO = 'https://github.com/ericediger/explainer.git';
+const REPO = 'https://github.com/ericediger/sizzle.git';
 const args = process.argv.slice(2);
 const flag = (name) => args.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3);
 const has = (name) => args.includes(`--${name}`);
-const home = () => process.env.EXPLAINER_HOME || path.join(os.homedir(), '.explainer');
+const home = () => process.env.SIZZLE_HOME || path.join(os.homedir(), '.sizzle');
+/** Folder names the engine goes by next to the apps; EXPLAINER is its name from before it was SIZZLE. */
+const SIBLINGS = ['SIZZLE', 'sizzle', 'EXPLAINER'];
 
-/** An engine folder: package.json named "explainer" with the pipeline's build script next to it. */
+/** An engine folder: package.json named "sizzle" (or "explainer", its old name) with the pipeline's build script next to it. */
 function isEngine(dir) {
   try {
     const pkg = JSON.parse(fs.readFileSync(path.join(dir, 'package.json'), 'utf8'));
-    return pkg.name === 'explainer' && fs.existsSync(path.join(dir, 'scripts', 'build.ts'));
+    return ['sizzle', 'explainer'].includes(pkg.name) && fs.existsSync(path.join(dir, 'scripts', 'build.ts'));
   } catch {
     return false;
   }
@@ -35,13 +37,13 @@ function isEngine(dir) {
 
 function candidates() {
   const out = [];
-  if (process.env.EXPLAINER_HOME) out.push(process.env.EXPLAINER_HOME);
+  if (process.env.SIZZLE_HOME) out.push(process.env.SIZZLE_HOME);
   for (let d = process.cwd(); ; d = path.dirname(d)) {
-    out.push(path.join(path.dirname(d), 'EXPLAINER'));
+    for (const name of SIBLINGS) out.push(path.join(path.dirname(d), name));
     out.push(d);
     if (path.dirname(d) === d) break;
   }
-  out.push(path.join(os.homedir(), '.explainer'));
+  out.push(path.join(os.homedir(), '.sizzle'));
   return [...new Set(out.map((p) => path.resolve(p)))];
 }
 
@@ -103,7 +105,7 @@ if (has('install')) {
   if (dir) {
     status(dir);
   } else {
-    console.error('No EXPLAINER engine found. Looked in:');
+    console.error('No SIZZLE engine found. Looked in:');
     for (const c of candidates()) console.error(`  ${c}`);
     console.error(`Install it with: node ${process.argv[1]} --install   (clones ${REPO} to ${home()})`);
     process.exit(1);

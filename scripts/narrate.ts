@@ -20,7 +20,8 @@ import { transcribeWords } from './lib/assemblyai';
 import { loadProject, show, type Project } from './lib/project';
 
 type Provider = 'say' | 'elevenlabs' | 'openai' | 'human';
-const DEFAULT_ELEVEN_VOICE = '21m00Tcm4TlvDq8ikWAM';
+/** The engine's own narrator: the author's voice, shared in the ElevenLabs Voice Library. */
+const DEFAULT_ELEVEN_VOICE = 'G3qIj1Lb0GkRqMWsPD2C';
 /** Per-video voice from the storyboard wins; .env is the machine-wide default. */
 const elevenVoice = (spec: VideoSpec) => spec.voice.elevenlabs ?? process.env.ELEVENLABS_VOICE_ID ?? DEFAULT_ELEVEN_VOICE;
 const openaiVoice = (spec: VideoSpec) => spec.voice.openai ?? process.env.OPENAI_TTS_VOICE ?? 'onyx';
@@ -69,7 +70,13 @@ async function synth(provider: Provider, text: string, out: string, spec: VideoS
       headers: { 'xi-api-key': key, 'content-type': 'application/json' },
       body: JSON.stringify({ text, model_id: 'eleven_multilingual_v2', voice_settings: { stability: 0.5, similarity_boost: 0.75, style: 0.2 } }),
     });
-    if (!res.ok) throw new Error(`ElevenLabs ${res.status}: ${await res.text()}`);
+    if (!res.ok) {
+      const hint =
+        voice === DEFAULT_ELEVEN_VOICE && res.status !== 401
+          ? `\n(${voice} is the engine's default voice, shared in the ElevenLabs Voice Library. Add it to your voices there, or set ELEVENLABS_VOICE_ID in .env or voice.elevenlabs in script.ts to one of yours.)`
+          : '';
+      throw new Error(`ElevenLabs ${res.status}: ${await res.text()}${hint}`);
+    }
     fs.writeFileSync(out, Buffer.from(await res.arrayBuffer()));
     return;
   }

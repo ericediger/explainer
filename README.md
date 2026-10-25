@@ -1,34 +1,34 @@
-# EXPLAINER — automated explainer videos for your apps
+# SIZZLE — automated explainer videos for your apps
 
-[![Watch the 90-second explainer video](media/explainer-poster.jpg)](https://ericediger.github.io/explainer/media/pipeline-explainer.mp4)
+[![Watch the 90-second explainer video](media/explainer-poster.jpg)](https://ericediger.github.io/sizzle/media/pipeline-explainer.mp4)
 
-**[▶ Watch the 90-second explainer](https://ericediger.github.io/explainer/media/pipeline-explainer.mp4)** · made with the pipeline itself: [`explainer/`](explainer/)
+**[▶ Watch the 90-second explainer](https://ericediger.github.io/sizzle/media/pipeline-explainer.mp4)** · made with the pipeline itself: [`explainer/`](explainer/)
 
 One command, run from an app's folder, turns its storyboard into a narrated, captioned product video plus a README poster:
 
 ```bash
 cd "../FLIGHT DECK"
-npm --prefix ../EXPLAINER run build   # narrate → record → render → poster   ⇒ media/<id>-explainer.mp4, media/explainer-poster.jpg
+npm --prefix ../SIZZLE run build   # narrate → record → render → poster   ⇒ media/<id>-explainer.mp4, media/explainer-poster.jpg
 ```
 
-## Or ask your coding agent: `/explainer`
+## Or ask your coding agent: `/sizzle`
 
-This repo is also a Claude Code plugin with one skill, `/explainer`. In any web app's folder, ask your agent to
+This repo is also a Claude Code plugin with one skill, `/sizzle`. In any web app's folder, ask your agent to
 "make an explainer video of this app". It then:
 - reads the app;
 - writes `<app>/explainer/`: the storyboard, the recorder's moves and the animated scenes;
 - shows you the narration and then the stills before rendering;
 - delivers the video and poster to `<app>/media/`.
 
-It finds this engine next to your apps or at `$EXPLAINER_HOME`; if there is none, it offers to clone one to `~/.explainer`.
+It finds this engine next to your apps or at `$SIZZLE_HOME`; if there is none, it offers to clone one to `~/.sizzle`.
 
 ```bash
-/plugin install explainer --marketplace ericediger/explainer   # Claude Code 2.1.275 or later
+/plugin install sizzle --marketplace ericediger/sizzle   # Claude Code 2.1.275 or later
 
-/plugin marketplace add ericediger/explainer                    # older Claude Code
-/plugin install explainer@explainer
+/plugin marketplace add ericediger/sizzle                 # older Claude Code
+/plugin install sizzle@sizzle
 
-npx skills add https://github.com/ericediger/explainer --skill explainer   # Codex, Cursor, Copilot, Gemini CLI, opencode …
+npx skills add https://github.com/ericediger/sizzle --skill sizzle   # Codex, Cursor, Copilot, Gemini CLI, opencode …
 ```
 
 The skill only holds the instructions; the engine still runs on your machine. That needs:
@@ -37,23 +37,27 @@ The skill only holds the instructions; the engine still runs on your machine. Th
 - a narrator: an ElevenLabs or OpenAI key in the engine's `.env`, the Mac voice, or your own recordings.
 
 Sessions opened in this repo pick the skill up from `.claude/skills/` and `.agents/skills/` without installing it.
-The skill's source is [`skills/explainer/`](skills/explainer/); its starter project is
-[`skills/explainer/assets/starter/`](skills/explainer/assets/starter/).
+The skill's source is [`skills/sizzle/`](skills/sizzle/); its starter project is
+[`skills/sizzle/assets/starter/`](skills/sizzle/assets/starter/).
 
 ## The engine
 
-This folder is the engine. It lives at `_LOCAL APP DEVELOPMENT/EXPLAINER`, next to the apps it films, and
-holds nothing that belongs to them. Each video's source lives with its app and is committed to the app's repo:
+This folder is the engine. It lives next to the apps it films (the examples call it `SIZZLE`; any name works),
+and holds nothing that belongs to them. Each video's source lives with its app and is committed to the app's repo:
 
 | What | Where | In git |
 |------|-------|--------|
-| The engine: `scripts/`, `src/` (the kit), `node_modules`, `.env` | `EXPLAINER/` | this repo (not `.env`) |
+| The engine: `scripts/`, `src/` (the kit), `node_modules`, `.env` | `SIZZLE/` | this repo (not `.env`) |
 | A video's source: storyboard, recorder choreography, scenes, music | `<app>/explainer/` | the app's repo |
-| Narration clips, recorded footage, renders, stills | `EXPLAINER/build/<id>/` | never: a cache, delete it to start over |
+| Narration clips, recorded footage, renders, stills | `SIZZLE/build/<id>/` | never: a cache, delete it to start over |
 | The finished MP4 and poster | `<app>/media/` | the app's repo |
 
 `render` and `poster` copy their result into the `media/` folder next to `explainer/`;
 `npm run deliver` copies them again without re-rendering.
+
+SIZZLE was called EXPLAINER before. Inside the apps the old names stay: the `explainer/` folder, the `@explainer/…`
+imports, `EXPLAINER_PROJECT` and the `media/<id>-explainer.mp4` files. That's what they hold, and it keeps
+existing videos working.
 
 Which video a command works on: the app folder you ran it from (it finds `explainer/` there or above);
 otherwise `--project=<app folder>` (or `EXPLAINER_PROJECT`), or `VIDEO=<id>` / `--video=<id>`, which looks the
@@ -103,7 +107,7 @@ npm run render -- --quality    # slower, higher-bitrate encode
 npm run projects               # every <app>/explainer/ next to this folder, by id
 ```
 
-From an app's folder, each is `npm --prefix ../EXPLAINER run <script>`.
+From an app's folder, each is `npm --prefix ../SIZZLE run <script>`.
 
 ## Narration voices
 
@@ -152,7 +156,7 @@ Everything app-specific lives in one folder inside the app:
 └── demo/          optional: a stage page for the recorder to film
 ```
 
-1. Copy the starter, [`skills/explainer/assets/starter/`](skills/explainer/assets/starter/), into `<app>/explainer/`.
+1. Copy the starter, [`skills/sizzle/assets/starter/`](skills/sizzle/assets/starter/), into `<app>/explainer/`.
    Or copy the closest existing project instead (`npm run projects` lists them; week-prep's is the web-app
    example). Then set `id`, `name`, `repoUrl`, `demoUrl`, and `record`: a folder + page to serve
    (`appDir` is relative to the app folder, so `'.'` for a `demo.html` at the root), or `url` of a dev server
@@ -170,7 +174,7 @@ Everything app-specific lives in one folder inside the app:
 5. Rewrite or replace the components in `scenes/` and register them in `index.ts`. They import the kit as
    `@explainer/src/kit/…` and resolve `react` and `remotion` from this folder, so the app needs no packages.
    If the app has its own `tsconfig.json` or linter that covers the whole repo, exclude `explainer/` there.
-6. From the app's folder: `npm --prefix ../EXPLAINER run check`, then `run build`.
+6. From the app's folder: `npm --prefix ../SIZZLE run check`, then `run build`.
 
 Footage scenes are generic: anything the app can be driven to in a browser can be recorded.
 For a native app, swap the Playwright recorder for a screen capture and hand-write the cues.
@@ -235,5 +239,6 @@ license. It is free for individuals, companies of up to three people and non-pro
 
 - **The music bed** in this repo's own video (`explainer/public/music/product-groove.mp3`) was generated with
   ElevenLabs by the author. You're welcome to use it under your own explainers.
-- **The narrator** of that video is the author's own voice, cloned in ElevenLabs. A cloned voice id only works
-  on the account that made it, so other people's videos use their own ElevenLabs voice (or the default one).
+- **The narrator** of that video is the author's own voice, cloned in ElevenLabs and shared in its Voice Library.
+  It is the engine's default ElevenLabs voice. To use another, set `ELEVENLABS_VOICE_ID` in `.env` (or
+  `voice.elevenlabs` per video). If your account can't reach it, add it from the Voice Library.

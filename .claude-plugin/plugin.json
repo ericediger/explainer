@@ -1,5 +1,5 @@
 {
-  "name": "explainer",
+  "name": "sizzle",
   "description": "Make a narrated, captioned explainer video of your web app: Playwright films the real app, ElevenLabs (or OpenAI, the Mac voice, or you) narrates, Remotion renders.",
   "version": "0.1.0",
   "author": {
@@ -7,7 +7,16 @@
     "url": "https://github.com/ericediger"
   },
   "license": "MIT",
-  "homepage": "https://github.com/ericediger/explainer",
-  "repository": "https://github.com/ericediger/explainer",
-  "keywords": ["video", "explainer", "demo", "remotion", "playwright", "elevenlabs", "skill"]
+  "homepage": "https://github.com/ericediger/sizzle",
+  "repository": "https://github.com/ericediger/sizzle",
+  "keywords": [
+    "video",
+    "explainer",
+    "sizzle",
+    "demo",
+    "remotion",
+    "playwright",
+    "elevenlabs",
+    "skill"
+  ]
 }

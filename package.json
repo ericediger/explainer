@@ -1,10 +1,10 @@
 {
-  "name": "explainer",
+  "name": "sizzle",
   "version": "0.1.0",
   "private": true,
-  "description": "Automated explainer-video pipeline: Playwright records the app, macOS/ElevenLabs narrate, Remotion composes and renders.",
+  "description": "SIZZLE: automated explainer videos for your apps. Playwright records the app, ElevenLabs (or OpenAI, macOS, you) narrates, Remotion composes and renders.",
   "license": "MIT",
-  "repository": "github:ericediger/explainer",
+  "repository": "github:ericediger/sizzle",
   "scripts": {
     "studio": "tsx scripts/studio.ts",
     "narrate": "tsx scripts/narrate.ts",
